@@ -55,7 +55,62 @@ const points = [
 
 <template>
   <div style="height: 280px;">
-    <LineChart :points="points" theme="dark" />
+    <LineChart
+      :points="points"
+      theme="dark"
+      color="#38bdf8"
+      dotted
+      :smooth="false"
+      :show-zero-line="false"
+    />
   </div>
 </template>
 ```
+
+## Line chart options
+
+`LineChart`
+
+- accepts either `points` for a single series or `series` for multiple lines
+- `color?: string`
+- `colors?: string[]` when using `series`
+- `dotted?: boolean`
+- `series[].dotted?: boolean` when using `series` to mix solid and dotted lines
+- `showZeroLine?: boolean`
+- `smooth?: boolean`
+
+`MultiLineChart`
+
+- compatibility wrapper around `LineChart` for multi-series usage
+- `colors?: string[]` for fallback per-series colors
+- `series[].color?: string` still overrides an individual line
+- `series[].dotted?: boolean` lets one series stay solid while another is dotted
+- `dotted?: boolean`
+- `showZeroLine?: boolean`
+- `smooth?: boolean`
+
+`RainbowLineChart`
+
+- `positiveColor?: string`
+- `negativeColor?: string`
+- `dotted?: boolean`
+- `showZeroLine?: boolean`
+- `smooth?: boolean`
+
+## Bar chart options
+
+`BarChart`
+
+- accepts either `bars` for a single series or `series` for grouped / stacked bars
+- `orientation?: 'vertical' | 'horizontal'`
+- `stacked?: boolean`
+- `colors?: string[]` for fallback per-series solid fills
+- `gradients?: BarGradient[]` for fallback per-series gradients
+- `bars[].color?: string`
+- `bars[].gradient?: { from?: string; to?: string; stops?: { offset; color; opacity? }[] }`
+- `series[].color?: string`
+- `series[].gradient?: { from?: string; to?: string; stops?: { offset; color; opacity? }[] }`
+
+`HorizontalBarChart`
+
+- compatibility alias for `<BarChart orientation="horizontal" />`

@@ -4,22 +4,20 @@ import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
 import { formatTooltipValue, formatValue } from '../utils/format'
 import { uniqueId } from '../utils/ids'
-import type { ChartPoint, ChartTheme } from '../types'
+import type { RainbowLineChartProps } from '../types'
 
-const props = withDefaults(
-  defineProps<{
-    points: ChartPoint[]
-    theme?: ChartTheme
-    format?: (value: number) => string
-  }>(),
-  {
-    theme: 'dark',
-  },
-)
+const props = withDefaults(defineProps<RainbowLineChartProps>(), {
+  theme: 'dark',
+  dotted: false,
+  showZeroLine: true,
+  smooth: true,
+})
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const { width: cw, height: ch } = useResize(rootRef)
 const { palette } = useTheme(rootRef, toRef(props, 'theme'))
+const positiveColor = computed(() => props.positiveColor ?? palette.value.positive)
+const negativeColor = computed(() => props.negativeColor ?? palette.value.negative)
 
 const PAD = { top: 16, right: 16, bottom: 28, left: 58 }
 const innerWidth = computed(() => Math.max(1, cw.value - PAD.left - PAD.right))
@@ -57,14 +55,20 @@ const linePath = computed(() => {
     const previousY = sy(props.points[index - 1].y)
     const currentX = sx(index)
     const currentY = sy(props.points[index].y)
-    const controlX = (previousX + currentX) / 2
-    path += ` C ${controlX} ${previousY}, ${controlX} ${currentY}, ${currentX} ${currentY}`
+    if (props.smooth) {
+      const controlX = (previousX + currentX) / 2
+      path += ` C ${controlX} ${previousY}, ${controlX} ${currentY}, ${currentX} ${currentY}`
+      continue
+    }
+
+    path += ` L ${currentX} ${currentY}`
   }
 
   return path
 })
 
 const zeroY = computed(() => sy(0))
+const lineStrokeDasharray = computed(() => (props.dotted ? '6 6' : undefined))
 
 const zeroOffset = computed(() => {
   if (minValue.value >= 0) {
@@ -154,7 +158,7 @@ const hoveredValue = computed(() =>
   hoveredIndex.value !== null ? props.points[hoveredIndex.value].y : 0,
 )
 const hoveredColor = computed(() =>
-  hoveredValue.value >= 0 ? palette.value.positive : palette.value.negative,
+  hoveredValue.value >= 0 ? positiveColor.value : negativeColor.value,
 )
 
 const tooltipWidth = 148
@@ -269,18 +273,18 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
           gradientUnits="userSpaceOnUse"
         >
           <template v-if="zeroOffset >= 100">
-            <stop offset="0%" :stop-color="palette.positive" />
-            <stop offset="100%" :stop-color="palette.positive" stop-opacity="0.6" />
+            <stop offset="0%" :stop-color="positiveColor" />
+            <stop offset="100%" :stop-color="positiveColor" stop-opacity="0.6" />
           </template>
           <template v-else-if="zeroOffset <= 0">
-            <stop offset="0%" :stop-color="palette.negative" stop-opacity="0.6" />
-            <stop offset="100%" :stop-color="palette.negative" />
+            <stop offset="0%" :stop-color="negativeColor" stop-opacity="0.6" />
+            <stop offset="100%" :stop-color="negativeColor" />
           </template>
           <template v-else>
-            <stop offset="0%" :stop-color="palette.positive" />
-            <stop :offset="`${Math.max(0, zeroOffset - 4)}%`" :stop-color="palette.positive" />
-            <stop :offset="`${Math.min(100, zeroOffset + 4)}%`" :stop-color="palette.negative" />
-            <stop offset="100%" :stop-color="palette.negative" />
+            <stop offset="0%" :stop-color="positiveColor" />
+            <stop :offset="`${Math.max(0, zeroOffset - 4)}%`" :stop-color="positiveColor" />
+            <stop :offset="`${Math.min(100, zeroOffset + 4)}%`" :stop-color="negativeColor" />
+            <stop offset="100%" :stop-color="negativeColor" />
           </template>
         </linearGradient>
 
@@ -305,6 +309,7 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
       />
 
       <line
+        v-if="props.showZeroLine"
         :x1="PAD.left"
         :y1="zeroY"
         :x2="cw - PAD.right"
@@ -321,6 +326,7 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
+        :stroke-dasharray="lineStrokeDasharray"
       />
 
       <text

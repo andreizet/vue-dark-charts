@@ -3,11 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vue-dark-charts preview</title>
+    <title>vue-dark-charts</title>
     <link rel="stylesheet" href="./dist/style.css" />
     <style>
       body {
         margin: 0;
+      }
+
+      .vdc-demo-code {
+        margin: 14px 0 0;
+        padding: 14px 16px;
+        border-radius: 14px;
+        overflow-x: auto;
+        background: rgba(2, 6, 23, 0.9);
+        color: #dbeafe;
+        font-size: 12px;
+        line-height: 1.55;
+        font-family:
+          ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+          Courier New, monospace;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+        white-space: pre-wrap;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-code {
+        background: rgba(226, 232, 240, 0.95);
+        color: #0f172a;
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
       }
     </style>
   </head>
@@ -23,7 +45,6 @@
         MultiLineChart,
         RainbowLineChart,
         BarChart,
-        HorizontalBarChart,
         DonutChart,
       } = VueDarkCharts
 
@@ -33,7 +54,6 @@
           MultiLineChart,
           RainbowLineChart,
           BarChart,
-          HorizontalBarChart,
           DonutChart,
         },
         data() {
@@ -47,6 +67,22 @@
               { x: '2026-03-05', y: 120 },
               { x: '2026-03-06', y: 420 },
               { x: '2026-03-07', y: 680 },
+            ],
+            dottedLinePoints: [
+              { x: 'Mar 1', y: 22 },
+              { x: 'Mar 2', y: 38 },
+              { x: 'Mar 3', y: 31 },
+              { x: 'Mar 4', y: 54 },
+              { x: 'Mar 5', y: 49 },
+              { x: 'Mar 6', y: 68 },
+            ],
+            straightLinePoints: [
+              { x: '06:00', y: 120 },
+              { x: '09:00', y: 80 },
+              { x: '12:00', y: 144 },
+              { x: '15:00', y: 96 },
+              { x: '18:00', y: 172 },
+              { x: '21:00', y: 132 },
             ],
             multiSeries: [
               {
@@ -82,6 +118,37 @@
                 ],
               },
             ],
+            dottedMultiSeries: [
+              {
+                name: 'Actual',
+                points: [
+                  { x: 'Q1', y: 32 },
+                  { x: 'Q2', y: 48 },
+                  { x: 'Q3', y: 44 },
+                  { x: 'Q4', y: 66 },
+                ],
+              },
+              {
+                name: 'Forecast',
+                dotted: true,
+                points: [
+                  { x: 'Q1', y: 24 },
+                  { x: 'Q2', y: 36 },
+                  { x: 'Q3', y: 58 },
+                  { x: 'Q4', y: 54 },
+                ],
+              },
+              {
+                name: 'Stretch',
+                dotted: true,
+                points: [
+                  { x: 'Q1', y: 18 },
+                  { x: 'Q2', y: 28 },
+                  { x: 'Q3', y: 36 },
+                  { x: 'Q4', y: 49 },
+                ],
+              },
+            ],
             rainbowPoints: [
               { x: 'Week 1', y: -420 },
               { x: 'Week 2', y: -140 },
@@ -89,6 +156,14 @@
               { x: 'Week 4', y: 250 },
               { x: 'Week 5', y: -40 },
               { x: 'Week 6', y: 390 },
+            ],
+            rainbowCustomPoints: [
+              { x: 'Jan', y: 44 },
+              { x: 'Feb', y: -20 },
+              { x: 'Mar', y: -72 },
+              { x: 'Apr', y: 18 },
+              { x: 'May', y: 64 },
+              { x: 'Jun', y: -16 },
             ],
             dailyBars: [
               { label: 'Mon', value: 420 },
@@ -99,12 +174,137 @@
               { label: 'Sat', value: 90 },
               { label: 'Sun', value: 210 },
             ],
-            distributionBars: [
-              { label: 'AAPL', value: 18 },
-              { label: 'MSFT', value: 12 },
-              { label: 'NVDA', value: 26 },
-              { label: 'TSLA', value: -8 },
-              { label: 'META', value: 14 },
+            groupedBars: [
+              {
+                name: 'Current',
+                color: '#22c55e',
+                bars: [
+                  { label: 'Jan', value: 12 },
+                  { label: 'Feb', value: 18 },
+                  { label: 'Mar', value: 14 },
+                  { label: 'Apr', value: 8 },
+                  { label: 'May', value: 16 },
+                  { label: 'Jun', value: 17 },
+                ],
+              },
+              {
+                name: 'Previous',
+                color: '#ef4444',
+                bars: [
+                  { label: 'Jan', value: 9 },
+                  { label: 'Feb', value: 16 },
+                  { label: 'Mar', value: 11 },
+                  { label: 'Apr', value: 15 },
+                  { label: 'May', value: 12 },
+                  { label: 'Jun', value: 13 },
+                ],
+              },
+            ],
+            stackedVerticalBars: [
+              {
+                name: 'Organic',
+                color: '#22c55e',
+                bars: [
+                  { label: 'Jan', value: 14 },
+                  { label: 'Feb', value: 18 },
+                  { label: 'Mar', value: 11 },
+                  { label: 'Apr', value: 17 },
+                  { label: 'May', value: 10 },
+                  { label: 'Jun', value: 16 },
+                  { label: 'Jul', value: 9 },
+                  { label: 'Aug', value: 19 },
+                  { label: 'Sep', value: 13 },
+                  { label: 'Oct', value: 12 },
+                  { label: 'Nov', value: 16 },
+                  { label: 'Dec', value: 5 },
+                ],
+              },
+              {
+                name: 'Paid',
+                color: '#facc15',
+                bars: [
+                  { label: 'Jan', value: 5 },
+                  { label: 'Feb', value: 8 },
+                  { label: 'Mar', value: 4 },
+                  { label: 'Apr', value: 7 },
+                  { label: 'May', value: 5 },
+                  { label: 'Jun', value: 6 },
+                  { label: 'Jul', value: 4 },
+                  { label: 'Aug', value: 5 },
+                  { label: 'Sep', value: 7 },
+                  { label: 'Oct', value: 5 },
+                  { label: 'Nov', value: 8 },
+                  { label: 'Dec', value: 3 },
+                ],
+              },
+              {
+                name: 'Referral',
+                gradient: {
+                  from: '#f87171',
+                  to: '#ef4444',
+                },
+                bars: [
+                  { label: 'Jan', value: 8 },
+                  { label: 'Feb', value: 17 },
+                  { label: 'Mar', value: 9 },
+                  { label: 'Apr', value: 14 },
+                  { label: 'May', value: 9 },
+                  { label: 'Jun', value: 15 },
+                  { label: 'Jul', value: 8 },
+                  { label: 'Aug', value: 20 },
+                  { label: 'Sep', value: 11 },
+                  { label: 'Oct', value: 10 },
+                  { label: 'Nov', value: 17 },
+                  { label: 'Dec', value: 6 },
+                ],
+              },
+            ],
+            stackedHorizontalBars: [
+              {
+                name: 'Organic',
+                color: '#22c55e',
+                bars: [
+                  { label: 'Jan', value: 24 },
+                  { label: 'Feb', value: 31 },
+                  { label: 'Apr', value: 27 },
+                  { label: 'Jun', value: 29 },
+                  { label: 'Jul', value: 11 },
+                  { label: 'Sep', value: 18 },
+                  { label: 'Oct', value: 16 },
+                  { label: 'Dec', value: 7 },
+                ],
+              },
+              {
+                name: 'Paid',
+                color: '#facc15',
+                bars: [
+                  { label: 'Jan', value: 8 },
+                  { label: 'Feb', value: 12 },
+                  { label: 'Apr', value: 10 },
+                  { label: 'Jun', value: 14 },
+                  { label: 'Jul', value: 6 },
+                  { label: 'Sep', value: 8 },
+                  { label: 'Oct', value: 9 },
+                  { label: 'Dec', value: 5 },
+                ],
+              },
+              {
+                name: 'Referral',
+                gradient: {
+                  from: '#f87171',
+                  to: '#ef4444',
+                },
+                bars: [
+                  { label: 'Jan', value: 13 },
+                  { label: 'Feb', value: 28 },
+                  { label: 'Apr', value: 22 },
+                  { label: 'Jun', value: 30 },
+                  { label: 'Jul', value: 14 },
+                  { label: 'Sep', value: 20 },
+                  { label: 'Oct', value: 17 },
+                  { label: 'Dec', value: 9 },
+                ],
+              },
             ],
             donutSegments: [
               { label: 'Tech', value: 12 },
@@ -113,6 +313,337 @@
               { label: 'Industrials', value: 4 },
               { label: 'Consumer', value: 6 },
             ],
+            snippets: {
+              lineBasic: `<script setup>
+const points = [
+  { x: '2026-03-01', y: -320 },
+  { x: '2026-03-02', y: -110 },
+  { x: '2026-03-03', y: 140 },
+  { x: '2026-03-04', y: 280 },
+  { x: '2026-03-05', y: 120 },
+  { x: '2026-03-06', y: 420 },
+  { x: '2026-03-07', y: 680 },
+]
+<\/script>
+
+<template>
+  <LineChart :points="points" theme="dark" />
+</template>`,
+              lineDotted: `<script setup>
+const points = [
+  { x: 'Mar 1', y: 22 },
+  { x: 'Mar 2', y: 38 },
+  { x: 'Mar 3', y: 31 },
+  { x: 'Mar 4', y: 54 },
+  { x: 'Mar 5', y: 49 },
+  { x: 'Mar 6', y: 68 },
+]
+<\/script>
+
+<template>
+  <LineChart
+    :points="points"
+    theme="dark"
+    color="#f97316"
+    dotted
+    value-mode="number"
+  />
+</template>`,
+              lineStraight: `<script setup>
+const points = [
+  { x: '06:00', y: 120 },
+  { x: '09:00', y: 80 },
+  { x: '12:00', y: 144 },
+  { x: '15:00', y: 96 },
+  { x: '18:00', y: 172 },
+  { x: '21:00', y: 132 },
+]
+<\/script>
+
+<template>
+  <LineChart
+    :points="points"
+    theme="dark"
+    color="#22c55e"
+    :smooth="false"
+    :show-zero-line="false"
+    value-mode="number"
+  />
+</template>`,
+              lineSeries: `<script setup>
+const series = [
+  {
+    name: 'Momentum',
+    points: [
+      { x: 'Mon', y: 40 },
+      { x: 'Tue', y: 72 },
+      { x: 'Wed', y: 52 },
+      { x: 'Thu', y: 90 },
+      { x: 'Fri', y: 130 },
+    ],
+  },
+  {
+    name: 'Mean Reversion',
+    color: '#38bdf8',
+    points: [
+      { x: 'Mon', y: 18 },
+      { x: 'Tue', y: 30 },
+      { x: 'Wed', y: 84 },
+      { x: 'Thu', y: 44 },
+      { x: 'Fri', y: 65 },
+    ],
+  },
+  {
+    name: 'Swing',
+    color: '#f59e0b',
+    points: [
+      { x: 'Mon', y: -12 },
+      { x: 'Tue', y: 15 },
+      { x: 'Wed', y: 26 },
+      { x: 'Thu', y: 55 },
+      { x: 'Fri', y: 102 },
+    ],
+  },
+]
+<\/script>
+
+<template>
+  <LineChart :series="series" theme="dark" value-mode="number" />
+</template>`,
+              multiAlias: `<script setup>
+const series = [
+  {
+    name: 'Actual',
+    points: [
+      { x: 'Q1', y: 32 },
+      { x: 'Q2', y: 48 },
+      { x: 'Q3', y: 44 },
+      { x: 'Q4', y: 66 },
+    ],
+  },
+  {
+    name: 'Forecast',
+    dotted: true,
+    points: [
+      { x: 'Q1', y: 24 },
+      { x: 'Q2', y: 36 },
+      { x: 'Q3', y: 58 },
+      { x: 'Q4', y: 54 },
+    ],
+  },
+  {
+    name: 'Stretch',
+    dotted: true,
+    points: [
+      { x: 'Q1', y: 18 },
+      { x: 'Q2', y: 28 },
+      { x: 'Q3', y: 36 },
+      { x: 'Q4', y: 49 },
+    ],
+  },
+]
+
+const colors = ['#0ea5e9', '#f97316', '#22c55e']
+<\/script>
+
+<template>
+  <MultiLineChart
+    :series="series"
+    :colors="colors"
+    theme="dark"
+    value-mode="number"
+  />
+</template>`,
+              rainbowBasic: `<script setup>
+const points = [
+  { x: 'Week 1', y: -420 },
+  { x: 'Week 2', y: -140 },
+  { x: 'Week 3', y: 80 },
+  { x: 'Week 4', y: 250 },
+  { x: 'Week 5', y: -40 },
+  { x: 'Week 6', y: 390 },
+]
+<\/script>
+
+<template>
+  <RainbowLineChart :points="points" theme="dark" />
+</template>`,
+              rainbowCustom: `<script setup>
+const points = [
+  { x: 'Jan', y: 44 },
+  { x: 'Feb', y: -20 },
+  { x: 'Mar', y: -72 },
+  { x: 'Apr', y: 18 },
+  { x: 'May', y: 64 },
+  { x: 'Jun', y: -16 },
+]
+<\/script>
+
+<template>
+  <RainbowLineChart
+    :points="points"
+    theme="dark"
+    positive-color="#06b6d4"
+    negative-color="#fb7185"
+    dotted
+    :smooth="false"
+    :show-zero-line="false"
+  />
+</template>`,
+              barBasic: `<script setup>
+const bars = [
+  { label: 'Mon', value: 420 },
+  { label: 'Tue', value: -120 },
+  { label: 'Wed', value: 320 },
+  { label: 'Thu', value: 180 },
+  { label: 'Fri', value: -240 },
+  { label: 'Sat', value: 90 },
+  { label: 'Sun', value: 210 },
+]
+<\/script>
+
+<template>
+  <BarChart :bars="bars" theme="dark" />
+</template>`,
+              barGrouped: `<script setup>
+const series = [
+  {
+    name: 'Current',
+    color: '#22c55e',
+    bars: [
+      { label: 'Jan', value: 12 },
+      { label: 'Feb', value: 18 },
+      { label: 'Mar', value: 14 },
+      { label: 'Apr', value: 8 },
+      { label: 'May', value: 16 },
+      { label: 'Jun', value: 17 },
+    ],
+  },
+  {
+    name: 'Previous',
+    color: '#ef4444',
+    bars: [
+      { label: 'Jan', value: 9 },
+      { label: 'Feb', value: 16 },
+      { label: 'Mar', value: 11 },
+      { label: 'Apr', value: 15 },
+      { label: 'May', value: 12 },
+      { label: 'Jun', value: 13 },
+    ],
+  },
+]
+<\/script>
+
+<template>
+  <BarChart :series="series" theme="dark" value-mode="number" />
+</template>`,
+              barStackedVertical: `<script setup>
+const series = [
+  {
+    name: 'Organic',
+    color: '#22c55e',
+    bars: [
+      { label: 'Jan', value: 14 },
+      { label: 'Feb', value: 18 },
+      { label: 'Mar', value: 11 },
+      { label: 'Apr', value: 17 },
+    ],
+  },
+  {
+    name: 'Paid',
+    color: '#facc15',
+    bars: [
+      { label: 'Jan', value: 5 },
+      { label: 'Feb', value: 8 },
+      { label: 'Mar', value: 4 },
+      { label: 'Apr', value: 7 },
+    ],
+  },
+  {
+    name: 'Referral',
+    gradient: {
+      from: '#f87171',
+      to: '#ef4444',
+    },
+    bars: [
+      { label: 'Jan', value: 8 },
+      { label: 'Feb', value: 17 },
+      { label: 'Mar', value: 9 },
+      { label: 'Apr', value: 14 },
+    ],
+  },
+]
+<\/script>
+
+<template>
+  <BarChart
+    :series="series"
+    theme="dark"
+    value-mode="number"
+    stacked
+  />
+</template>`,
+              barStackedHorizontal: `<script setup>
+const series = [
+  {
+    name: 'Organic',
+    color: '#22c55e',
+    bars: [
+      { label: 'Jan', value: 24 },
+      { label: 'Feb', value: 31 },
+      { label: 'Apr', value: 27 },
+      { label: 'Jun', value: 29 },
+    ],
+  },
+  {
+    name: 'Paid',
+    color: '#facc15',
+    bars: [
+      { label: 'Jan', value: 8 },
+      { label: 'Feb', value: 12 },
+      { label: 'Apr', value: 10 },
+      { label: 'Jun', value: 14 },
+    ],
+  },
+  {
+    name: 'Referral',
+    gradient: {
+      from: '#f87171',
+      to: '#ef4444',
+    },
+    bars: [
+      { label: 'Jan', value: 13 },
+      { label: 'Feb', value: 28 },
+      { label: 'Apr', value: 22 },
+      { label: 'Jun', value: 30 },
+    ],
+  },
+]
+<\/script>
+
+<template>
+  <BarChart
+    :series="series"
+    theme="dark"
+    value-mode="number"
+    orientation="horizontal"
+    stacked
+  />
+</template>`,
+              donutBasic: `<script setup>
+const segments = [
+  { label: 'Tech', value: 12 },
+  { label: 'Healthcare', value: 7 },
+  { label: 'Energy', value: 5 },
+  { label: 'Industrials', value: 4 },
+  { label: 'Consumer', value: 6 },
+]
+<\/script>
+
+<template>
+  <DonutChart :segments="segments" theme="dark" />
+</template>`,
+            },
           }
         },
         template: `
@@ -121,7 +652,8 @@
               <div>
                 <h1>vue-dark-charts</h1>
                 <p>
-                  Standalone local preview. This page works when opened directly from the filesystem.
+                  Lightweight Vue 3 SVG charts grouped by shape and built to demo cleanly on GitHub
+                  Pages.
                 </p>
               </div>
               <button class="vdc-demo-toggle" @click="theme = theme === 'dark' ? 'light' : 'dark'">
@@ -129,55 +661,190 @@
               </button>
             </header>
 
-            <section class="vdc-demo-grid">
-              <article class="vdc-demo-card">
-                <h2>Line Chart</h2>
-                <p>Single-series curve with hover crosshair and glow.</p>
-                <div class="vdc-demo-frame">
-                  <LineChart :points="linePoints" :theme="theme" />
+            <div class="vdc-demo-sections">
+              <section class="vdc-demo-section">
+                <div class="vdc-demo-section-heading">
+                  <span class="vdc-demo-kicker">Line Charts</span>
+                  <h2>Trend, comparison, and zero-crossing views</h2>
+                  <p>
+                    Three line-based variants for single series, multi-series comparisons, and
+                    above/below-zero storytelling.
+                  </p>
                 </div>
-              </article>
 
-              <article class="vdc-demo-card">
-                <h2>Multi Line Chart</h2>
-                <p>Compare multiple strategies on the same axis.</p>
-                <div class="vdc-demo-frame">
-                  <MultiLineChart :series="multiSeries" :theme="theme" value-mode="number" />
-                </div>
-              </article>
+                <div class="vdc-demo-grid">
+                  <article class="vdc-demo-card">
+                    <h3>Line Chart</h3>
+                    <p>Single-series curve with hover crosshair and glow.</p>
+                    <div class="vdc-demo-frame">
+                      <LineChart :points="linePoints" :theme="theme" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.lineBasic"></code></pre>
+                  </article>
 
-              <article class="vdc-demo-card">
-                <h2>Rainbow Line Chart</h2>
-                <p>Green above zero, red below, with automatic crossing split.</p>
-                <div class="vdc-demo-frame">
-                  <RainbowLineChart :points="rainbowPoints" :theme="theme" />
-                </div>
-              </article>
+                  <article class="vdc-demo-card">
+                    <h3>Dotted Line</h3>
+                    <p>Custom line color with dotted stroke styling.</p>
+                    <div class="vdc-demo-frame">
+                      <LineChart
+                        :points="dottedLinePoints"
+                        :theme="theme"
+                        color="#f97316"
+                        dotted
+                        value-mode="number"
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.lineDotted"></code></pre>
+                  </article>
 
-              <article class="vdc-demo-card">
-                <h2>Bar Chart</h2>
-                <p>Compact vertical bars with positive and negative support.</p>
-                <div class="vdc-demo-frame">
-                  <BarChart :bars="dailyBars" :theme="theme" />
-                </div>
-              </article>
+                  <article class="vdc-demo-card">
+                    <h3>Straight Line</h3>
+                    <p>Sharp segments with the zero guide hidden.</p>
+                    <div class="vdc-demo-frame">
+                      <LineChart
+                        :points="straightLinePoints"
+                        :theme="theme"
+                        color="#22c55e"
+                        :smooth="false"
+                        :show-zero-line="false"
+                        value-mode="number"
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.lineStraight"></code></pre>
+                  </article>
 
-              <article class="vdc-demo-card">
-                <h2>Horizontal Bar Chart</h2>
-                <p>Good for ranked distributions and instrument breakdowns.</p>
-                <div class="vdc-demo-frame is-tall">
-                  <HorizontalBarChart :bars="distributionBars" :theme="theme" value-mode="number" />
-                </div>
-              </article>
+                  <article class="vdc-demo-card">
+                    <h3>LineChart with Series</h3>
+                    <p>Use the main wrapper with multiple series through the same import.</p>
+                    <div class="vdc-demo-frame">
+                      <LineChart :series="multiSeries" :theme="theme" value-mode="number" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.lineSeries"></code></pre>
+                  </article>
 
-              <article class="vdc-demo-card">
-                <h2>Donut Chart</h2>
-                <p>Legend toggles visibility without hiding all segments.</p>
-                <div class="vdc-demo-frame is-tall">
-                  <DonutChart :segments="donutSegments" :theme="theme" />
+                  <article class="vdc-demo-card">
+                    <h3>Mixed Solid + Dotted</h3>
+                    <p>The legacy MultiLineChart alias can mix per-series line styles too.</p>
+                    <div class="vdc-demo-frame">
+                      <MultiLineChart
+                        :series="dottedMultiSeries"
+                        :theme="theme"
+                        :colors="['#0ea5e9', '#f97316', '#22c55e']"
+                        value-mode="number"
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.multiAlias"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Rainbow Line Chart</h3>
+                    <p>Green above zero, red below, with automatic crossing split.</p>
+                    <div class="vdc-demo-frame">
+                      <RainbowLineChart :points="rainbowPoints" :theme="theme" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.rainbowBasic"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Custom Rainbow</h3>
+                    <p>Custom positive and negative colors with straight dotted segments.</p>
+                    <div class="vdc-demo-frame">
+                      <RainbowLineChart
+                        :points="rainbowCustomPoints"
+                        :theme="theme"
+                        positive-color="#06b6d4"
+                        negative-color="#fb7185"
+                        dotted
+                        :smooth="false"
+                        :show-zero-line="false"
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.rainbowCustom"></code></pre>
+                  </article>
                 </div>
-              </article>
-            </section>
+              </section>
+
+              <section class="vdc-demo-section">
+                <div class="vdc-demo-section-heading">
+                  <span class="vdc-demo-kicker">Bar Charts</span>
+                  <h2>Grouped and stacked distribution views</h2>
+                  <p>
+                    Use the same BarChart entry point for single, grouped, and stacked layouts.
+                  </p>
+                </div>
+
+                <div class="vdc-demo-grid">
+                  <article class="vdc-demo-card">
+                    <h3>Bar Chart</h3>
+                    <p>Compact vertical bars with positive and negative support.</p>
+                    <div class="vdc-demo-frame">
+                      <BarChart :bars="dailyBars" :theme="theme" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.barBasic"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Grouped Bar Chart</h3>
+                    <p>Multiple bars per label, powered through the same wrapper API.</p>
+                    <div class="vdc-demo-frame">
+                      <BarChart :series="groupedBars" :theme="theme" value-mode="number" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.barGrouped"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Stacked Vertical</h3>
+                    <p>Segment totals with stacked bars, including per-series gradients.</p>
+                    <div class="vdc-demo-frame">
+                      <BarChart
+                        :series="stackedVerticalBars"
+                        :theme="theme"
+                        value-mode="number"
+                        stacked
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.barStackedVertical"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Stacked Horizontal</h3>
+                    <p>Portfolio-style rows with the same BarChart component.</p>
+                    <div class="vdc-demo-frame is-tall">
+                      <BarChart
+                        :series="stackedHorizontalBars"
+                        :theme="theme"
+                        value-mode="number"
+                        orientation="horizontal"
+                        stacked
+                      />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.barStackedHorizontal"></code></pre>
+                  </article>
+                </div>
+              </section>
+
+              <section class="vdc-demo-section">
+                <div class="vdc-demo-section-heading">
+                  <span class="vdc-demo-kicker">Donut Charts</span>
+                  <h2>Composition at a glance</h2>
+                  <p>
+                    Segment-based views for allocations and category mixes, with interactive legend
+                    toggling.
+                  </p>
+                </div>
+
+                <div class="vdc-demo-grid vdc-demo-grid--compact">
+                  <article class="vdc-demo-card">
+                    <h3>Donut Chart</h3>
+                    <p>Legend toggles visibility without hiding all segments.</p>
+                    <div class="vdc-demo-frame is-tall">
+                      <DonutChart :segments="donutSegments" :theme="theme" />
+                    </div>
+                    <pre class="vdc-demo-code"><code v-text="snippets.donutBasic"></code></pre>
+                  </article>
+                </div>
+              </section>
+            </div>
           </main>
         `,
       }).mount('#app')

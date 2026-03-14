@@ -8,8 +8,14 @@ export { default as HorizontalBarChart } from './components/HorizontalBarChart.v
 export { default as DonutChart } from './components/DonutChart.vue'
 
 export type {
+  BaseLineChartProps,
   BarChartProps,
   BarDatum,
+  BarGradient,
+  BarGradientDirection,
+  BarGradientStop,
+  BarOrientation,
+  BarSeries,
   ChartPoint,
   ChartTheme,
   DonutChartProps,
@@ -17,5 +23,7 @@ export type {
   LineChartProps,
   MultiLineChartProps,
   MultiLineSeries,
+  RainbowLineChartProps,
+  SingleLineChartProps,
   ValueMode,
 } from './types'

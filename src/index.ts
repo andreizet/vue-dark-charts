@@ -6,6 +6,8 @@ export { default as RainbowLineChart } from './components/RainbowLineChart.vue'
 export { default as BarChart } from './components/BarChart.vue'
 export { default as HorizontalBarChart } from './components/HorizontalBarChart.vue'
 export { default as DonutChart } from './components/DonutChart.vue'
+export { default as RadialChart } from './components/RadialChart.vue'
+export { default as RadarChart } from './components/RadarChart.vue'
 
 export type {
   BaseLineChartProps,
@@ -23,6 +25,10 @@ export type {
   LineChartProps,
   MultiLineChartProps,
   MultiLineSeries,
+  RadarChartProps,
+  RadarSeries,
+  RadialChartProps,
+  RadialRing,
   RainbowLineChartProps,
   SingleLineChartProps,
   ValueMode,

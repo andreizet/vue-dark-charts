@@ -10,6 +10,8 @@ Small Vue 3 SVG charts extracted from this repo into a standalone package.
 - `BarChart`
 - `HorizontalBarChart`
 - `DonutChart`
+- `RadialChart`
+- `RadarChart`
 
 ## Development
 
@@ -114,3 +116,30 @@ const points = [
 `HorizontalBarChart`
 
 - compatibility alias for `<BarChart orientation="horizontal" />`
+
+## Circular chart options
+
+`DonutChart`
+
+- `segments: { label; value; color? }[]`
+- `centerText?: string`
+
+`RadialChart`
+
+- `rings: { label; value; max?: number; color?: string }[]`
+- uses the same fallback palette as `DonutChart` when `color` is omitted
+- `centerText?: string`
+- `centerLabel?: string`
+- `startAngle?: number`
+- `ringGap?: number`
+
+`RadarChart`
+
+- accepts either `points` for a single polygon or `series` for multi-series overlays
+- `series: { name; color?; fillOpacity?; points: { x; y }[] }[]`
+- `color?: string`
+- `colors?: string[]` when using `series`
+- `valueMode?: 'currency' | 'percent' | 'number'`
+- `maxValue?: number` to pin the outer ring scale
+- `gridLevels?: number`
+- `showDots?: boolean`

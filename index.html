@@ -10,6 +10,113 @@
         margin: 0;
       }
 
+      .vdc-demo-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+
+      .vdc-demo-view-switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .vdc-demo-action {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.6);
+        color: #e2e8f0;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          background-color 0.2s ease,
+          border-color 0.2s ease,
+          color 0.2s ease;
+      }
+
+      .vdc-demo-action:hover,
+      .vdc-demo-action:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(96, 165, 250, 0.45);
+        background: rgba(30, 41, 59, 0.95);
+        outline: none;
+      }
+
+      .vdc-demo-action.is-active {
+        border-color: rgba(96, 165, 250, 0.65);
+        background: rgba(37, 99, 235, 0.22);
+        color: #dbeafe;
+      }
+
+      .vdc-demo-action.is-copied {
+        border-color: rgba(74, 222, 128, 0.7);
+        background: rgba(22, 163, 74, 0.2);
+        color: #dcfce7;
+      }
+
+      .vdc-demo-action svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+
+      .vdc-demo-action::before,
+      .vdc-demo-action::after {
+        position: absolute;
+        left: 50%;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .vdc-demo-action::before {
+        content: '';
+        bottom: calc(100% + 2px);
+        transform: translate(-50%, 6px);
+        border-width: 6px 6px 0;
+        border-style: solid;
+        border-color: rgba(15, 23, 42, 0.96) transparent transparent transparent;
+      }
+
+      .vdc-demo-action::after {
+        content: attr(data-tooltip);
+        bottom: calc(100% + 10px);
+        transform: translate(-50%, 6px);
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.96);
+        color: #e2e8f0;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.2;
+        white-space: nowrap;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.32);
+        z-index: 2;
+      }
+
+      .vdc-demo-action:hover::before,
+      .vdc-demo-action:hover::after,
+      .vdc-demo-action:focus-visible::before,
+      .vdc-demo-action:focus-visible::after {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
       .vdc-demo-code {
         margin: 14px 0 0;
         padding: 14px 16px;
@@ -31,6 +138,40 @@
         color: #0f172a;
         box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
       }
+
+      [data-vdc-theme='light'] .vdc-demo-action {
+        border-color: rgba(148, 163, 184, 0.45);
+        background: rgba(248, 250, 252, 0.92);
+        color: #0f172a;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-action:hover,
+      [data-vdc-theme='light'] .vdc-demo-action:focus-visible {
+        border-color: rgba(59, 130, 246, 0.5);
+        background: #ffffff;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-action.is-active {
+        border-color: rgba(37, 99, 235, 0.45);
+        background: rgba(59, 130, 246, 0.12);
+        color: #1d4ed8;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-action.is-copied {
+        border-color: rgba(34, 197, 94, 0.45);
+        background: rgba(34, 197, 94, 0.12);
+        color: #166534;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-action::before {
+        border-color: rgba(255, 255, 255, 0.98) transparent transparent transparent;
+      }
+
+      [data-vdc-theme='light'] .vdc-demo-action::after {
+        background: rgba(255, 255, 255, 0.98);
+        color: #0f172a;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      }
     </style>
   </head>
   <body>
@@ -46,6 +187,8 @@
         RainbowLineChart,
         BarChart,
         DonutChart,
+        RadarChart,
+        RadialChart,
       } = VueDarkCharts
 
       createApp({
@@ -55,10 +198,15 @@
           RainbowLineChart,
           BarChart,
           DonutChart,
+          RadarChart,
+          RadialChart,
         },
         data() {
           return {
             theme: 'dark',
+            cardViews: {},
+            copiedSnippet: null,
+            copyResetHandle: null,
             linePoints: [
               { x: '2026-03-01', y: -320 },
               { x: '2026-03-02', y: -110 },
@@ -312,6 +460,53 @@
               { label: 'Energy', value: 5 },
               { label: 'Industrials', value: 4 },
               { label: 'Consumer', value: 6 },
+            ],
+            radarSeries: [
+              {
+                name: 'Desktop',
+                color: '#2458ff',
+                fillOpacity: 0.12,
+                points: [
+                  { x: 'January', y: 190 },
+                  { x: 'February', y: 332 },
+                  { x: 'March', y: 278 },
+                  { x: 'April', y: 273 },
+                  { x: 'May', y: 214 },
+                  { x: 'June', y: 322 },
+                  { x: 'July', y: 260 },
+                  { x: 'August', y: 346 },
+                  { x: 'September', y: 181 },
+                  { x: 'October', y: 292 },
+                  { x: 'November', y: 176 },
+                  { x: 'December', y: 286 },
+                ],
+              },
+              {
+                name: 'Mobile',
+                color: '#a855f7',
+                fillOpacity: 0.16,
+                points: [
+                  { x: 'January', y: 126 },
+                  { x: 'February', y: 208 },
+                  { x: 'March', y: 171 },
+                  { x: 'April', y: 203 },
+                  { x: 'May', y: 158 },
+                  { x: 'June', y: 142 },
+                  { x: 'July', y: 198 },
+                  { x: 'August', y: 166 },
+                  { x: 'September', y: 201 },
+                  { x: 'October', y: 136 },
+                  { x: 'November', y: 142 },
+                  { x: 'December', y: 214 },
+                ],
+              },
+            ],
+            radialRings: [
+              { label: 'Tech', value: 88, color: '#ec4899' },
+              { label: 'Healthcare', value: 76, color: '#8b5cf6' },
+              { label: 'Energy', value: 63, color: '#f59e0b' },
+              { label: 'Industrials', value: 48, color: '#10b981' },
+              { label: 'Consumer', value: 72, color: '#3b82f6' },
             ],
             snippets: {
               lineBasic: `<script setup>
@@ -630,6 +825,34 @@ const series = [
     stacked
   />
 </template>`,
+              radarBasic: `<script setup>
+const series = [
+  {
+    name: 'Desktop',
+    color: '#2458ff',
+    points: [
+      { x: 'January', y: 190 },
+      { x: 'February', y: 332 },
+      { x: 'March', y: 278 },
+      { x: 'April', y: 273 },
+    ],
+  },
+  {
+    name: 'Mobile',
+    color: '#a855f7',
+    points: [
+      { x: 'January', y: 126 },
+      { x: 'February', y: 208 },
+      { x: 'March', y: 171 },
+      { x: 'April', y: 203 },
+    ],
+  },
+]
+<\/script>
+
+<template>
+  <RadarChart :series="series" theme="dark" value-mode="number" />
+</template>`,
               donutBasic: `<script setup>
 const segments = [
   { label: 'Tech', value: 12 },
@@ -643,8 +866,69 @@ const segments = [
 <template>
   <DonutChart :segments="segments" theme="dark" />
 </template>`,
+              radialBasic: `<script setup>
+const rings = [
+  { label: 'Tech', value: 88, color: '#ec4899' },
+  { label: 'Healthcare', value: 76, color: '#8b5cf6' },
+  { label: 'Energy', value: 63, color: '#f59e0b' },
+  { label: 'Industrials', value: 48, color: '#10b981' },
+  { label: 'Consumer', value: 72, color: '#3b82f6' },
+]
+<\/script>
+
+<template>
+  <RadialChart :rings="rings" theme="dark" />
+</template>`,
             },
           }
+        },
+        methods: {
+          getCardView(cardId) {
+            return this.cardViews[cardId] ?? 'preview'
+          },
+          setCardView(cardId, view) {
+            this.cardViews[cardId] = view
+          },
+          getCopyTooltip(snippetKey) {
+            return this.copiedSnippet === snippetKey ? 'Code copied to clipboard' : 'Copy code to clipboard'
+          },
+          async copySnippet(snippetKey) {
+            const code = this.snippets[snippetKey]
+
+            if (!code) {
+              return
+            }
+
+            try {
+              if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(code)
+              } else {
+                const textarea = document.createElement('textarea')
+                textarea.value = code
+                textarea.setAttribute('readonly', '')
+                textarea.style.position = 'fixed'
+                textarea.style.opacity = '0'
+                textarea.style.pointerEvents = 'none'
+                document.body.appendChild(textarea)
+                textarea.select()
+                document.execCommand('copy')
+                document.body.removeChild(textarea)
+              }
+
+              this.copiedSnippet = snippetKey
+
+              if (this.copyResetHandle) {
+                window.clearTimeout(this.copyResetHandle)
+              }
+
+              this.copyResetHandle = window.setTimeout(() => {
+                this.copiedSnippet = null
+                this.copyResetHandle = null
+              }, 1600)
+            } catch (error) {
+              console.error('Unable to copy chart snippet.', error)
+            }
+          },
         },
         template: `
           <main class="vdc-demo" :data-vdc-theme="theme">
@@ -676,16 +960,108 @@ const segments = [
                   <article class="vdc-demo-card">
                     <h3>Line Chart</h3>
                     <p>Single-series curve with hover crosshair and glow.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('lineBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('lineBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('lineBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('lineBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'lineBasic' }"
+                        :data-tooltip="getCopyTooltip('lineBasic')"
+                        :aria-label="getCopyTooltip('lineBasic')"
+                        @click="copySnippet('lineBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('lineBasic') === 'preview'" class="vdc-demo-frame">
                       <LineChart :points="linePoints" :theme="theme" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.lineBasic"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineBasic"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Dotted Line</h3>
                     <p>Custom line color with dotted stroke styling.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineDotted') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('lineDotted') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('lineDotted', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineDotted') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('lineDotted') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('lineDotted', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'lineDotted' }"
+                        :data-tooltip="getCopyTooltip('lineDotted')"
+                        :aria-label="getCopyTooltip('lineDotted')"
+                        @click="copySnippet('lineDotted')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('lineDotted') === 'preview'" class="vdc-demo-frame">
                       <LineChart
                         :points="dottedLinePoints"
                         :theme="theme"
@@ -694,13 +1070,59 @@ const segments = [
                         value-mode="number"
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.lineDotted"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineDotted"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Straight Line</h3>
                     <p>Sharp segments with the zero guide hidden.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineStraight') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('lineStraight') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('lineStraight', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineStraight') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('lineStraight') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('lineStraight', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'lineStraight' }"
+                        :data-tooltip="getCopyTooltip('lineStraight')"
+                        :aria-label="getCopyTooltip('lineStraight')"
+                        @click="copySnippet('lineStraight')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('lineStraight') === 'preview'" class="vdc-demo-frame">
                       <LineChart
                         :points="straightLinePoints"
                         :theme="theme"
@@ -710,22 +1132,114 @@ const segments = [
                         value-mode="number"
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.lineStraight"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineStraight"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>LineChart with Series</h3>
                     <p>Use the main wrapper with multiple series through the same import.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineSeries') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('lineSeries') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('lineSeries', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('lineSeries') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('lineSeries') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('lineSeries', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'lineSeries' }"
+                        :data-tooltip="getCopyTooltip('lineSeries')"
+                        :aria-label="getCopyTooltip('lineSeries')"
+                        @click="copySnippet('lineSeries')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('lineSeries') === 'preview'" class="vdc-demo-frame">
                       <LineChart :series="multiSeries" :theme="theme" value-mode="number" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.lineSeries"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineSeries"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Mixed Solid + Dotted</h3>
                     <p>The legacy MultiLineChart alias can mix per-series line styles too.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('multiAlias') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('multiAlias') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('multiAlias', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('multiAlias') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('multiAlias') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('multiAlias', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'multiAlias' }"
+                        :data-tooltip="getCopyTooltip('multiAlias')"
+                        :aria-label="getCopyTooltip('multiAlias')"
+                        @click="copySnippet('multiAlias')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('multiAlias') === 'preview'" class="vdc-demo-frame">
                       <MultiLineChart
                         :series="dottedMultiSeries"
                         :theme="theme"
@@ -733,22 +1247,114 @@ const segments = [
                         value-mode="number"
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.multiAlias"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.multiAlias"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Rainbow Line Chart</h3>
                     <p>Green above zero, red below, with automatic crossing split.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('rainbowBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('rainbowBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('rainbowBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('rainbowBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('rainbowBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('rainbowBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'rainbowBasic' }"
+                        :data-tooltip="getCopyTooltip('rainbowBasic')"
+                        :aria-label="getCopyTooltip('rainbowBasic')"
+                        @click="copySnippet('rainbowBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('rainbowBasic') === 'preview'" class="vdc-demo-frame">
                       <RainbowLineChart :points="rainbowPoints" :theme="theme" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.rainbowBasic"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.rainbowBasic"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Custom Rainbow</h3>
                     <p>Custom positive and negative colors with straight dotted segments.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('rainbowCustom') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('rainbowCustom') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('rainbowCustom', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('rainbowCustom') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('rainbowCustom') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('rainbowCustom', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'rainbowCustom' }"
+                        :data-tooltip="getCopyTooltip('rainbowCustom')"
+                        :aria-label="getCopyTooltip('rainbowCustom')"
+                        @click="copySnippet('rainbowCustom')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('rainbowCustom') === 'preview'" class="vdc-demo-frame">
                       <RainbowLineChart
                         :points="rainbowCustomPoints"
                         :theme="theme"
@@ -759,7 +1365,7 @@ const segments = [
                         :show-zero-line="false"
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.rainbowCustom"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.rainbowCustom"></code></pre>
                   </article>
                 </div>
               </section>
@@ -777,25 +1383,163 @@ const segments = [
                   <article class="vdc-demo-card">
                     <h3>Bar Chart</h3>
                     <p>Compact vertical bars with positive and negative support.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('barBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('barBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('barBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('barBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'barBasic' }"
+                        :data-tooltip="getCopyTooltip('barBasic')"
+                        :aria-label="getCopyTooltip('barBasic')"
+                        @click="copySnippet('barBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('barBasic') === 'preview'" class="vdc-demo-frame">
                       <BarChart :bars="dailyBars" :theme="theme" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.barBasic"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barBasic"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Grouped Bar Chart</h3>
                     <p>Multiple bars per label, powered through the same wrapper API.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barGrouped') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('barGrouped') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('barGrouped', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barGrouped') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('barGrouped') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('barGrouped', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'barGrouped' }"
+                        :data-tooltip="getCopyTooltip('barGrouped')"
+                        :aria-label="getCopyTooltip('barGrouped')"
+                        @click="copySnippet('barGrouped')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('barGrouped') === 'preview'" class="vdc-demo-frame">
                       <BarChart :series="groupedBars" :theme="theme" value-mode="number" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.barGrouped"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barGrouped"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Stacked Vertical</h3>
                     <p>Segment totals with stacked bars, including per-series gradients.</p>
-                    <div class="vdc-demo-frame">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barStackedVertical') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('barStackedVertical') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('barStackedVertical', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barStackedVertical') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('barStackedVertical') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('barStackedVertical', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'barStackedVertical' }"
+                        :data-tooltip="getCopyTooltip('barStackedVertical')"
+                        :aria-label="getCopyTooltip('barStackedVertical')"
+                        @click="copySnippet('barStackedVertical')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('barStackedVertical') === 'preview'" class="vdc-demo-frame">
                       <BarChart
                         :series="stackedVerticalBars"
                         :theme="theme"
@@ -803,13 +1547,59 @@ const segments = [
                         stacked
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.barStackedVertical"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barStackedVertical"></code></pre>
                   </article>
 
                   <article class="vdc-demo-card">
                     <h3>Stacked Horizontal</h3>
                     <p>Portfolio-style rows with the same BarChart component.</p>
-                    <div class="vdc-demo-frame is-tall">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barStackedHorizontal') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('barStackedHorizontal') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('barStackedHorizontal', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('barStackedHorizontal') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('barStackedHorizontal') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('barStackedHorizontal', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'barStackedHorizontal' }"
+                        :data-tooltip="getCopyTooltip('barStackedHorizontal')"
+                        :aria-label="getCopyTooltip('barStackedHorizontal')"
+                        @click="copySnippet('barStackedHorizontal')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('barStackedHorizontal') === 'preview'" class="vdc-demo-frame is-tall">
                       <BarChart
                         :series="stackedHorizontalBars"
                         :theme="theme"
@@ -818,29 +1608,184 @@ const segments = [
                         stacked
                       />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.barStackedHorizontal"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barStackedHorizontal"></code></pre>
                   </article>
                 </div>
               </section>
 
               <section class="vdc-demo-section">
                 <div class="vdc-demo-section-heading">
-                  <span class="vdc-demo-kicker">Donut Charts</span>
+                  <span class="vdc-demo-kicker">Circular Charts</span>
                   <h2>Composition at a glance</h2>
                   <p>
-                    Segment-based views for allocations and category mixes, with interactive legend
-                    toggling.
+                    Segment-based views for allocations, progress rings, and compact KPI clusters.
                   </p>
                 </div>
 
-                <div class="vdc-demo-grid vdc-demo-grid--compact">
+                <div class="vdc-demo-grid">
+                  <article class="vdc-demo-card">
+                    <h3>Radar Chart</h3>
+                    <p>Spider plot with a shared hover tooltip styled like the reference.</p>
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('radarBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('radarBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('radarBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('radarBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('radarBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('radarBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'radarBasic' }"
+                        :data-tooltip="getCopyTooltip('radarBasic')"
+                        :aria-label="getCopyTooltip('radarBasic')"
+                        @click="copySnippet('radarBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('radarBasic') === 'preview'" class="vdc-demo-frame is-tall">
+                      <RadarChart :series="radarSeries" :theme="theme" value-mode="number" />
+                    </div>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.radarBasic"></code></pre>
+                  </article>
+
+                  <article class="vdc-demo-card">
+                    <h3>Radial Chart</h3>
+                    <p>Layered progress rings styled with the same palette as the donut chart.</p>
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('radialBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('radialBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('radialBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('radialBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('radialBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('radialBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'radialBasic' }"
+                        :data-tooltip="getCopyTooltip('radialBasic')"
+                        :aria-label="getCopyTooltip('radialBasic')"
+                        @click="copySnippet('radialBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('radialBasic') === 'preview'" class="vdc-demo-frame is-tall">
+                      <RadialChart :rings="radialRings" :theme="theme" />
+                    </div>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.radialBasic"></code></pre>
+                  </article>
+
                   <article class="vdc-demo-card">
                     <h3>Donut Chart</h3>
                     <p>Legend toggles visibility without hiding all segments.</p>
-                    <div class="vdc-demo-frame is-tall">
+                    <div class="vdc-demo-actions">
+                      <div class="vdc-demo-view-switch">
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('donutBasic') === 'preview' }"
+                          data-tooltip="Show chart preview"
+                          :aria-pressed="getCardView('donutBasic') === 'preview'"
+                          aria-label="Show chart preview"
+                          @click="setCardView('donutBasic', 'preview')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          class="vdc-demo-action"
+                          :class="{ 'is-active': getCardView('donutBasic') === 'code' }"
+                          data-tooltip="Show component code"
+                          :aria-pressed="getCardView('donutBasic') === 'code'"
+                          aria-label="Show component code"
+                          @click="setCardView('donutBasic', 'code')"
+                        >
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
+                          </svg>
+                          <span>Code</span>
+                        </button>
+                      </div>
+                      <button
+                        class="vdc-demo-action"
+                        :class="{ 'is-copied': copiedSnippet === 'donutBasic' }"
+                        :data-tooltip="getCopyTooltip('donutBasic')"
+                        :aria-label="getCopyTooltip('donutBasic')"
+                        @click="copySnippet('donutBasic')"
+                      >
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
+                        </svg>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div v-if="getCardView('donutBasic') === 'preview'" class="vdc-demo-frame is-tall">
                       <DonutChart :segments="donutSegments" :theme="theme" />
                     </div>
-                    <pre class="vdc-demo-code"><code v-text="snippets.donutBasic"></code></pre>
+                    <pre v-else class="vdc-demo-code"><code v-text="snippets.donutBasic"></code></pre>
                   </article>
                 </div>
               </section>

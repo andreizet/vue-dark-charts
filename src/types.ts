@@ -113,3 +113,40 @@ export interface DonutChartProps {
   centerText?: string
   format?: (value: number) => string
 }
+
+export interface RadialRing {
+  label: string
+  value: number
+  max?: number
+  color?: string
+}
+
+export interface RadialChartProps {
+  rings: RadialRing[]
+  theme?: ChartTheme
+  centerText?: string
+  centerLabel?: string
+  format?: (value: number) => string
+  startAngle?: number
+  ringGap?: number
+}
+
+export interface RadarSeries {
+  name: string
+  color?: string
+  fillOpacity?: number
+  points: ChartPoint[]
+}
+
+export interface RadarChartProps {
+  points?: ChartPoint[]
+  series?: RadarSeries[]
+  theme?: ChartTheme
+  valueMode?: ValueMode
+  format?: (value: number) => string
+  color?: string
+  colors?: string[]
+  maxValue?: number
+  gridLevels?: number
+  showDots?: boolean
+}

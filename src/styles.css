@@ -59,6 +59,143 @@
   width: 100%;
 }
 
+.vdc-radial {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.vdc-radial-canvas {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.vdc-radial-track,
+.vdc-radial-arc {
+  fill: none;
+}
+
+.vdc-radial-track {
+  stroke-linecap: round;
+}
+
+.vdc-radial-arc {
+  cursor: pointer;
+  stroke-linecap: round;
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease,
+    stroke-dasharray 260ms ease;
+}
+
+.vdc-radial-core {
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.22));
+}
+
+.vdc-radar-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.vdc-radar-svg {
+  display: block;
+  overflow: visible;
+}
+
+.vdc-radar-backdrop {
+  opacity: 0.32;
+}
+
+.vdc-radar-grid {
+  fill: none;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.vdc-radar-axis {
+  stroke-width: 1;
+  opacity: 0.72;
+}
+
+.vdc-radar-area {
+  transition: fill-opacity 180ms ease;
+}
+
+.vdc-radar-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.vdc-radar-point {
+  transition:
+    r 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease;
+}
+
+.vdc-radar-point:not(.is-active) {
+  opacity: 0.88;
+}
+
+.vdc-radar-center-dot {
+  opacity: 0.8;
+}
+
+.vdc-radar-label {
+  font-size: 0.78rem;
+  dominant-baseline: middle;
+  transition: fill 180ms ease;
+}
+
+.vdc-radar-zone {
+  fill: rgba(0, 0, 0, 0.001);
+}
+
+.vdc-radar-tooltip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  padding: 0.7rem 0.8rem 0.75rem;
+  border: 1px solid;
+  border-radius: 14px;
+}
+
+.vdc-radar-tooltip-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.vdc-radar-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.vdc-radar-tooltip-row + .vdc-radar-tooltip-row {
+  margin-top: 0.3rem;
+}
+
+.vdc-radar-tooltip-series {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.vdc-radar-tooltip-swatch {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 0.22rem;
+  flex-shrink: 0;
+}
+
 .vdc-donut-legend {
   display: flex;
   flex-direction: column;

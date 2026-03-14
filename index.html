@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vue-dark-charts preview</title>
+    <link rel="stylesheet" href="./dist/style.css" />
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="./node_modules/vue/dist/vue.global.prod.js"></script>
+    <script src="./dist/vue-dark-charts.iife.js"></script>
+    <script>
+      const { createApp } = Vue
+      const {
+        LineChart,
+        MultiLineChart,
+        RainbowLineChart,
+        BarChart,
+        HorizontalBarChart,
+        DonutChart,
+      } = VueDarkCharts
+
+      createApp({
+        components: {
+          LineChart,
+          MultiLineChart,
+          RainbowLineChart,
+          BarChart,
+          HorizontalBarChart,
+          DonutChart,
+        },
+        data() {
+          return {
+            theme: 'dark',
+            linePoints: [
+              { x: '2026-03-01', y: -320 },
+              { x: '2026-03-02', y: -110 },
+              { x: '2026-03-03', y: 140 },
+              { x: '2026-03-04', y: 280 },
+              { x: '2026-03-05', y: 120 },
+              { x: '2026-03-06', y: 420 },
+              { x: '2026-03-07', y: 680 },
+            ],
+            multiSeries: [
+              {
+                name: 'Momentum',
+                points: [
+                  { x: 'Mon', y: 40 },
+                  { x: 'Tue', y: 72 },
+                  { x: 'Wed', y: 52 },
+                  { x: 'Thu', y: 90 },
+                  { x: 'Fri', y: 130 },
+                ],
+              },
+              {
+                name: 'Mean Reversion',
+                color: '#38bdf8',
+                points: [
+                  { x: 'Mon', y: 18 },
+                  { x: 'Tue', y: 30 },
+                  { x: 'Wed', y: 84 },
+                  { x: 'Thu', y: 44 },
+                  { x: 'Fri', y: 65 },
+                ],
+              },
+              {
+                name: 'Swing',
+                color: '#f59e0b',
+                points: [
+                  { x: 'Mon', y: -12 },
+                  { x: 'Tue', y: 15 },
+                  { x: 'Wed', y: 26 },
+                  { x: 'Thu', y: 55 },
+                  { x: 'Fri', y: 102 },
+                ],
+              },
+            ],
+            rainbowPoints: [
+              { x: 'Week 1', y: -420 },
+              { x: 'Week 2', y: -140 },
+              { x: 'Week 3', y: 80 },
+              { x: 'Week 4', y: 250 },
+              { x: 'Week 5', y: -40 },
+              { x: 'Week 6', y: 390 },
+            ],
+            dailyBars: [
+              { label: 'Mon', value: 420 },
+              { label: 'Tue', value: -120 },
+              { label: 'Wed', value: 320 },
+              { label: 'Thu', value: 180 },
+              { label: 'Fri', value: -240 },
+              { label: 'Sat', value: 90 },
+              { label: 'Sun', value: 210 },
+            ],
+            distributionBars: [
+              { label: 'AAPL', value: 18 },
+              { label: 'MSFT', value: 12 },
+              { label: 'NVDA', value: 26 },
+              { label: 'TSLA', value: -8 },
+              { label: 'META', value: 14 },
+            ],
+            donutSegments: [
+              { label: 'Tech', value: 12 },
+              { label: 'Healthcare', value: 7 },
+              { label: 'Energy', value: 5 },
+              { label: 'Industrials', value: 4 },
+              { label: 'Consumer', value: 6 },
+            ],
+          }
+        },
+        template: `
+          <main class="vdc-demo" :data-vdc-theme="theme">
+            <header class="vdc-demo-header">
+              <div>
+                <h1>vue-dark-charts</h1>
+                <p>
+                  Standalone local preview. This page works when opened directly from the filesystem.
+                </p>
+              </div>
+              <button class="vdc-demo-toggle" @click="theme = theme === 'dark' ? 'light' : 'dark'">
+                Theme: {{ theme }}
+              </button>
+            </header>
+
+            <section class="vdc-demo-grid">
+              <article class="vdc-demo-card">
+                <h2>Line Chart</h2>
+                <p>Single-series curve with hover crosshair and glow.</p>
+                <div class="vdc-demo-frame">
+                  <LineChart :points="linePoints" :theme="theme" />
+                </div>
+              </article>
+
+              <article class="vdc-demo-card">
+                <h2>Multi Line Chart</h2>
+                <p>Compare multiple strategies on the same axis.</p>
+                <div class="vdc-demo-frame">
+                  <MultiLineChart :series="multiSeries" :theme="theme" value-mode="number" />
+                </div>
+              </article>
+
+              <article class="vdc-demo-card">
+                <h2>Rainbow Line Chart</h2>
+                <p>Green above zero, red below, with automatic crossing split.</p>
+                <div class="vdc-demo-frame">
+                  <RainbowLineChart :points="rainbowPoints" :theme="theme" />
+                </div>
+              </article>
+
+              <article class="vdc-demo-card">
+                <h2>Bar Chart</h2>
+                <p>Compact vertical bars with positive and negative support.</p>
+                <div class="vdc-demo-frame">
+                  <BarChart :bars="dailyBars" :theme="theme" />
+                </div>
+              </article>
+
+              <article class="vdc-demo-card">
+                <h2>Horizontal Bar Chart</h2>
+                <p>Good for ranked distributions and instrument breakdowns.</p>
+                <div class="vdc-demo-frame is-tall">
+                  <HorizontalBarChart :bars="distributionBars" :theme="theme" value-mode="number" />
+                </div>
+              </article>
+
+              <article class="vdc-demo-card">
+                <h2>Donut Chart</h2>
+                <p>Legend toggles visibility without hiding all segments.</p>
+                <div class="vdc-demo-frame is-tall">
+                  <DonutChart :segments="donutSegments" :theme="theme" />
+                </div>
+              </article>
+            </section>
+          </main>
+        `,
+      }).mount('#app')
+    </script>
+  </body>
+  </html>

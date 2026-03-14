@@ -1,0 +1,44 @@
+{
+  "name": "vue-dark-charts",
+  "version": "0.1.0",
+  "description": "Small Vue 3 SVG chart components with plain CSS theming.",
+  "type": "module",
+  "main": "dist/vue-dark-charts.cjs",
+  "module": "dist/vue-dark-charts.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/vue-dark-charts.js",
+      "require": "./dist/vue-dark-charts.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite --open /playground.html",
+    "build": "vue-tsc --noEmit -p tsconfig.json && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.11",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.24",
+    "vue-tsc": "^3.1.4"
+  }
+}

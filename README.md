@@ -1,8 +1,14 @@
 # vue-dark-charts
 
+[![Tests](https://img.shields.io/github/actions/workflow/status/andreizet/vue-dark-charts/ci.yml?branch=main&label=tests&logo=github)](https://github.com/andreizet/vue-dark-charts/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/vue-dark-charts?logo=npm)](https://www.npmjs.com/package/vue-dark-charts)
+[![License](https://img.shields.io/github/license/andreizet/vue-dark-charts)](./LICENSE)
+
 `vue-dark-charts` is a Vue 3 chart library with responsive SVG components, dark-first styling, and minimal setup.
 
 It is designed for dashboards, admin panels, portfolio views, analytics pages, and internal tools where you want lightweight charts without pulling in a large charting runtime.
+
+![vue-dark-charts preview](./docs/assets/readme-hero.png)
 
 ## Install
 
@@ -71,7 +77,7 @@ Most components support a consistent set of props:
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `theme` | 'dark' | 'light' | 'auto'` | usually `'dark'` | `auto` follows the current color scheme |
+| `theme` | `'dark' \| 'light' \| 'auto'` | usually `'dark'` | `auto` follows the current color scheme |
 | `neon` | `boolean` | `true` | Enables the glow-heavy visual style |
 | `format` | `(value: number) => string` | — | Use for custom tooltip/label formatting |
 
@@ -79,7 +85,7 @@ Charts with axis-based numeric values also support:
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `valueMode` | `'currency' | 'percent' | 'number'` | varies by chart |
+| `valueMode` | `'currency' \| 'percent' \| 'number'` | varies by chart |
 
 ## Choose the right chart
 
@@ -305,3 +311,21 @@ type RadarSeries = {
 - `vue` is a peer dependency
 - import styles with `import 'vue-dark-charts/style.css'`
 - charts are rendered with SVG, so they are easy to style and scale cleanly
+
+## Publishing
+
+After the initial npm setup, releases are tag-driven:
+
+```bash
+npm version patch
+git push origin main --follow-tags
+```
+
+That flow will:
+
+- update the package version
+- push the matching `v*` git tag
+- publish the new version to npm through GitHub Actions
+- create a GitHub Release with generated notes for the same tag
+
+Full contributor and release notes live in [docs/publishing.md](./docs/publishing.md).

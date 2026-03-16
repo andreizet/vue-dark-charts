@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>vue-dark-charts — Beautiful charts for Vue 3</title>
-    <meta name="description" content="Lightweight Vue 3 SVG chart components with zero dependencies. Dark-first, fully themeable, responsive by default." />
+    <meta name="description" content="Lightweight Vue 3 SVG chart components with zero dependencies. Dark-first, fully themeable, plug and play." />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1267,10 +1267,15 @@ const rings = [
                           <div class="hero__chart-meta">
                             <span class="hero__chart-label">Market Pulse</span>
                             <div class="hero__chart-value">+$68k</div>
-                            <div class="hero__chart-note">Seven-day climb with a clean breakout into the close.</div>
                           </div>
                           <div class="hero__chart-canvas">
-                            <LineChart :points="linePoints" :theme="theme" :neon="theme !== 'light'" />
+                            <RainbowLineChart
+                              :points="linePoints"
+                              :theme="theme"
+                              :neon="theme !== 'light'"
+                              positive-color="#22c55e"
+                              negative-color="#ef4444"
+                            />
                           </div>
                         </div>
                         <div class="hero__chart-box hero__chart-box--bar">
@@ -1287,7 +1292,6 @@ const rings = [
                           <div class="hero__chart-meta">
                             <span class="hero__chart-label">Allocation</span>
                             <div class="hero__chart-value">5 sectors</div>
-                            <div class="hero__chart-note">A wider card gives the donut breakdown room to breathe.</div>
                           </div>
                           <div class="hero__chart-canvas">
                             <DonutChart :segments="donutSegments" :theme="theme" :neon="theme !== 'light'" />

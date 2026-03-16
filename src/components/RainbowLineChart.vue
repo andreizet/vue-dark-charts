@@ -2,7 +2,7 @@
 import { computed, ref, toRef, watch, onUnmounted, type CSSProperties } from 'vue'
 import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
-import { formatTooltipValue, formatValue } from '../utils/format'
+import { formatAxisLabel, formatTooltipValue, formatValue } from '../utils/format'
 import { uniqueId } from '../utils/ids'
 import type { RainbowLineChartProps } from '../types'
 
@@ -98,11 +98,12 @@ const xTicks = computed(() => {
     return []
   }
 
+  const formattedLabels = props.points.map((point) => formatAxisLabel(point.x))
   const step = Math.max(1, Math.ceil(props.points.length / 8))
   const ticks: Array<{ label: string; x: number }> = []
 
   for (let index = 0; index < props.points.length; index += step) {
-    ticks.push({ label: props.points[index].x, x: sx(index) })
+    ticks.push({ label: formattedLabels[index], x: sx(index) })
   }
 
   return ticks

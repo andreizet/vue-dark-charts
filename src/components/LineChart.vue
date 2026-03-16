@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, toRef, watch } from 'vue'
+import { computed, onUnmounted, ref, toRef, watch, type CSSProperties } from 'vue'
 import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
 import { formatAxisLabel, formatTooltipValue, formatValue } from '../utils/format'
@@ -155,11 +155,15 @@ const xTicks = computed(() => {
     return []
   }
 
-  const step = Math.max(1, Math.ceil(labels.value.length / 8))
+  const formattedLabels = labels.value.map((label) => formatAxisLabel(label))
+  const longestLabel = formattedLabels.reduce((max, label) => Math.max(max, label.length), 0)
+  const minSpacing = clamp(longestLabel * 6 + 10, 28, 84)
+  const maxTickCount = Math.max(1, Math.floor(innerWidth.value / minSpacing) + 1)
+  const step = Math.max(1, Math.ceil(labels.value.length / maxTickCount))
   const ticks: Array<{ label: string; x: number }> = []
 
   for (let index = 0; index < labels.value.length; index += step) {
-    ticks.push({ label: formatAxisLabel(labels.value[index]), x: sx(index) })
+    ticks.push({ label: formattedLabels[index], x: sx(index) })
   }
 
   return ticks
@@ -255,6 +259,11 @@ const tooltipWidth = computed(() => (isMultiMode.value ? 220 : 148))
 const tooltipHeight = computed(() =>
   isMultiMode.value ? Math.max(44, 24 + hoverRows.value.length * 16) : 44,
 )
+const TOOLTIP_SAFE_MARGIN = 8
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
 
 const tooltipX = computed(() => {
   const next = hoveredX.value + 14
@@ -362,6 +371,48 @@ const displayedPoint = computed(() => {
   return singlePoints.value[index]
 })
 
+const tooltipStyle = computed<CSSProperties>(() => {
+  const rootRect = rootRef.value?.getBoundingClientRect()
+  if (!rootRect || !showHover.value) {
+    return {}
+  }
+
+  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight
+  const maxLeft = Math.max(
+    TOOLTIP_SAFE_MARGIN,
+    viewportWidth - tooltipWidth.value - TOOLTIP_SAFE_MARGIN,
+  )
+  const maxTop = Math.max(
+    TOOLTIP_SAFE_MARGIN,
+    viewportHeight - tooltipHeight.value - TOOLTIP_SAFE_MARGIN,
+  )
+
+  return {
+    position: 'fixed',
+    left: `${viewportWidth ? clamp(rootRect.left + animTooltipX.value, TOOLTIP_SAFE_MARGIN, maxLeft) : rootRect.left + animTooltipX.value}px`,
+    top: `${viewportHeight ? clamp(rootRect.top + animTooltipY.value, TOOLTIP_SAFE_MARGIN, maxTop) : rootRect.top + animTooltipY.value}px`,
+    width: `${tooltipWidth.value}px`,
+    padding: '0.45rem 0.65rem',
+    borderRadius: '6px',
+    background: palette.value.tooltipBg,
+    color: palette.value.tooltipText,
+    boxShadow: '0 16px 30px rgba(0, 0, 0, 0.22)',
+    pointerEvents: 'none',
+    zIndex: '1000',
+  }
+})
+
+const singleTooltipStyle = computed<CSSProperties>(() => ({
+  ...tooltipStyle.value,
+  border: `1px solid ${singleColor.value}`,
+}))
+
+const multiTooltipStyle = computed<CSSProperties>(() => ({
+  ...tooltipStyle.value,
+  border: `1px solid ${palette.value.tooltipBorder}`,
+}))
+
 const singleSeriesPath = computed(() => seriesPaths.value[0]?.path ?? '')
 const glowId = uniqueId('vdc-line-glow')
 const dotGlowId = uniqueId('vdc-line-dot')
@@ -464,7 +515,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
         :y="tick.y + 4"
         text-anchor="end"
         :fill="palette.axisText"
-        style="font-size: 11px; font-family: ui-monospace, monospace;"
+        style="font-size: 11px;"
       >
         {{ formatChartValue(tick.value) }}
       </text>
@@ -503,39 +554,6 @@ const dotGlowId = uniqueId('vdc-line-dot')
         <circle :cx="animX" :cy="animY" r="3" :fill="singleColor" :opacity="animOpacity" />
         <circle :cx="animX" :cy="animY" r="1.5" fill="#ffffff" :opacity="0.92 * animOpacity" />
 
-        <g :transform="`translate(${animTooltipX}, ${animTooltipY})`" :opacity="animOpacity">
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            :fill="palette.tooltipBg"
-          />
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            fill="none"
-            :stroke="singleColor"
-            stroke-width="0.75"
-            stroke-opacity="0.4"
-          />
-          <text
-            x="10"
-            y="16"
-            :fill="palette.tooltipMuted"
-            style="font-size: 10px;"
-          >
-            {{ displayedPoint.x }}
-          </text>
-          <text
-            x="10"
-            y="33"
-            :fill="singleColor"
-            style="font-size: 13px; font-weight: 700; font-family: ui-monospace, monospace;"
-          >
-            {{ formatHoverValue(displayedPoint.y) }}
-          </text>
-        </g>
       </template>
 
       <template v-if="isMultiMode && showHover">
@@ -562,41 +580,51 @@ const dotGlowId = uniqueId('vdc-line-dot')
           />
         </template>
 
-        <g :transform="`translate(${animTooltipX}, ${animTooltipY})`" :opacity="animOpacity">
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            :fill="palette.tooltipBg"
-          />
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            fill="none"
-            :stroke="palette.tooltipBorder"
-            stroke-width="0.75"
-          />
-          <text
-            x="10"
-            y="16"
-            :fill="palette.tooltipMuted"
-            style="font-size: 10px;"
-          >
-            {{ hoverLabel }}
-          </text>
-          <text
-            v-for="(row, index) in hoverRows"
-            :key="`${row.name}-${index}`"
-            x="10"
-            :y="32 + index * 16"
-            :fill="row.color"
-            style="font-size: 12px; font-weight: 700; font-family: ui-monospace, monospace;"
-          >
-            {{ row.name }}: {{ formatHoverValue(row.value) }}
-          </text>
-        </g>
       </template>
     </svg>
+
+    <Teleport to="body">
+      <div
+        v-if="!isMultiMode && showHover && displayedPoint"
+        :style="{
+          ...singleTooltipStyle,
+          opacity: `${animOpacity}`,
+        }"
+      >
+        <div :style="{ color: palette.tooltipMuted, fontSize: '10px' }">{{ displayedPoint.x }}</div>
+        <div
+          :style="{
+            color: singleColor,
+            fontSize: '13px',
+            fontWeight: '700',
+            marginTop: '0.2rem',
+          }"
+        >
+          {{ formatHoverValue(displayedPoint.y) }}
+        </div>
+      </div>
+
+      <div
+        v-if="isMultiMode && showHover"
+        :style="{
+          ...multiTooltipStyle,
+          opacity: `${animOpacity}`,
+        }"
+      >
+        <div :style="{ color: palette.tooltipMuted, fontSize: '10px' }">{{ hoverLabel }}</div>
+        <div
+          v-for="(row, index) in hoverRows"
+          :key="`${row.name}-${index}`"
+          :style="{
+            color: row.color,
+            fontSize: '12px',
+            fontWeight: '700',
+            marginTop: index === 0 ? '0.35rem' : '0.2rem',
+          }"
+        >
+          {{ row.name }}: {{ formatHoverValue(row.value) }}
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

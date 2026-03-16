@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, toRef, watch } from 'vue'
+import { computed, onUnmounted, ref, toRef, watch, type CSSProperties } from 'vue'
 import { useResize } from '../../composables/useResize'
 import { useTheme } from '../../composables/useTheme'
 import { formatAxisLabel, formatTooltipValue, formatValue } from '../../utils/format'
@@ -235,13 +235,18 @@ function resolveFill(bar: RenderBar): string {
 
 const labelStep = computed(() => {
   const count = labels.value.length
-  if (count <= 12) {
+  if (!count) {
     return 1
   }
-  if (count <= 20) {
-    return 2
-  }
-  return Math.ceil(count / 10)
+
+  const longestLabel = labels.value.reduce(
+    (max, label) => Math.max(max, formatAxisLabel(label).length),
+    0,
+  )
+  const minSpacing = clamp(longestLabel * 6 + 10, 28, 84)
+  const maxLabelCount = Math.max(1, Math.floor(innerWidth.value / minSpacing) + 1)
+
+  return Math.max(1, Math.ceil(count / maxLabelCount))
 })
 
 function formatHoverValue(value: number): string {
@@ -364,6 +369,11 @@ const tooltipWidth = computed(() => {
 })
 
 const tooltipHeight = computed(() => Math.max(44, 24 + hoverRows.value.length * 16))
+const TOOLTIP_SAFE_MARGIN = 8
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
 
 const tooltipX = computed(() => {
   const next = hoveredGroupCenterX.value + 12
@@ -396,6 +406,39 @@ const referenceLabel = computed(() =>
 )
 const referenceColor = computed(() => singleHoveredBar.value?.fill.color ?? palette.value.axisText)
 const chipWidth = computed(() => Math.max(44, referenceLabel.value.length * 7.5 + 18))
+
+const tooltipStyle = computed<CSSProperties>(() => {
+  const rootRect = rootRef.value?.getBoundingClientRect()
+  if (!rootRect || !isMultiMode.value || hoveredIndex.value === null || !hoverRows.value.length) {
+    return {}
+  }
+
+  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight
+  const maxLeft = Math.max(
+    TOOLTIP_SAFE_MARGIN,
+    viewportWidth - tooltipWidth.value - TOOLTIP_SAFE_MARGIN,
+  )
+  const maxTop = Math.max(
+    TOOLTIP_SAFE_MARGIN,
+    viewportHeight - tooltipHeight.value - TOOLTIP_SAFE_MARGIN,
+  )
+
+  return {
+    position: 'fixed',
+    left: `${viewportWidth ? clamp(rootRect.left + tooltipX.value, TOOLTIP_SAFE_MARGIN, maxLeft) : rootRect.left + tooltipX.value}px`,
+    top: `${viewportHeight ? clamp(rootRect.top + tooltipY.value, TOOLTIP_SAFE_MARGIN, maxTop) : rootRect.top + tooltipY.value}px`,
+    width: `${tooltipWidth.value}px`,
+    padding: '0.55rem 0.7rem',
+    borderRadius: '8px',
+    border: `1px solid ${palette.value.tooltipBorder}`,
+    background: palette.value.tooltipBg,
+    color: palette.value.tooltipText,
+    boxShadow: '0 16px 30px rgba(0, 0, 0, 0.22)',
+    pointerEvents: 'none',
+    zIndex: '1000',
+  }
+})
 
 function stopAnimation() {
   if (frame !== null) {
@@ -532,7 +575,7 @@ onUnmounted(() => {
           :y="referenceY + 4.5"
           text-anchor="middle"
           :fill="referenceColor"
-          style="font-size: 11px; font-weight: 600; font-family: ui-monospace, monospace;"
+          style="font-size: 11px; font-weight: 600;"
         >
           {{ referenceLabel }}
         </text>
@@ -545,60 +588,6 @@ onUnmounted(() => {
           stroke-dasharray="4 4"
           stroke-width="1"
         />
-      </g>
-
-      <g v-if="isMultiMode && hoveredIndex !== null && hoverRows.length">
-        <rect
-          :x="tooltipX"
-          :y="tooltipY"
-          :width="tooltipWidth"
-          :height="tooltipHeight"
-          rx="8"
-          :fill="palette.tooltipBg"
-        />
-        <rect
-          :x="tooltipX"
-          :y="tooltipY"
-          :width="tooltipWidth"
-          :height="tooltipHeight"
-          rx="8"
-          fill="none"
-          :stroke="palette.tooltipBorder"
-          stroke-width="0.85"
-        />
-        <text
-          :x="tooltipX + 12"
-          :y="tooltipY + 16"
-          :fill="palette.tooltipMuted"
-          style="font-size: 10px;"
-        >
-          {{ hoverLabel }}
-        </text>
-        <g v-for="(row, rowIndex) in hoverRows" :key="`${hoverLabel}-${row.name}`">
-          <circle
-            :cx="tooltipX + 13"
-            :cy="tooltipY + 30 + rowIndex * 16"
-            r="3"
-            :fill="row.color"
-          />
-          <text
-            :x="tooltipX + 22"
-            :y="tooltipY + 33 + rowIndex * 16"
-            :fill="palette.tooltipText"
-            style="font-size: 11px;"
-          >
-            {{ row.name }}
-          </text>
-          <text
-            :x="tooltipX + tooltipWidth - 12"
-            :y="tooltipY + 33 + rowIndex * 16"
-            text-anchor="end"
-            :fill="row.color"
-            style="font-size: 11px; font-weight: 700; font-family: ui-monospace, monospace;"
-          >
-            {{ formatHoverValue(row.value) }}
-          </text>
-        </g>
       </g>
 
       <text
@@ -614,5 +603,41 @@ onUnmounted(() => {
         {{ formatAxisLabel(label) }}
       </text>
     </svg>
+
+    <Teleport to="body">
+      <div v-if="isMultiMode && hoveredIndex !== null && hoverRows.length" :style="tooltipStyle">
+        <div :style="{ color: palette.tooltipMuted, fontSize: '10px' }">{{ hoverLabel }}</div>
+        <div
+          v-for="(row, rowIndex) in hoverRows"
+          :key="`${hoverLabel}-${row.name}`"
+          :style="{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.6rem',
+            marginTop: rowIndex === 0 ? '0.45rem' : '0.2rem',
+            fontSize: '11px',
+          }"
+        >
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: '0' }">
+            <span
+              :style="{
+                width: '0.4rem',
+                height: '0.4rem',
+                borderRadius: '999px',
+                background: row.color,
+                flexShrink: '0',
+              }"
+            />
+            <span :style="{ color: palette.tooltipText }">{{ row.name }}</span>
+          </div>
+          <span
+            :style="{ color: row.color, fontWeight: '700' }"
+          >
+            {{ formatHoverValue(row.value) }}
+          </span>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

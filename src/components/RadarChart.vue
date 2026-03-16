@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef } from 'vue'
+import { computed, ref, toRef, type CSSProperties } from 'vue'
 import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
 import type { RadarChartProps } from '../types'
@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<RadarChartProps>(), {
 })
 
 const rootRef = ref<HTMLDivElement | null>(null)
+const stageRef = ref<HTMLDivElement | null>(null)
 const { width: cw, height: ch } = useResize(rootRef)
 const { palette } = useTheme(rootRef, toRef(props, 'theme'))
 
@@ -295,9 +296,10 @@ const hoverAnchor = computed(() => {
 const tooltipWidth = computed(() => 156)
 const tooltipHeight = computed(() => 18 + hoverRows.value.length * 22 + 16)
 
-const tooltipStyle = computed(() => {
+const tooltipStyle = computed<CSSProperties>(() => {
   const anchor = hoverAnchor.value
-  if (!anchor) {
+  const stageRect = stageRef.value?.getBoundingClientRect()
+  if (!anchor || !stageRect) {
     return {}
   }
 
@@ -307,11 +309,19 @@ const tooltipStyle = computed(() => {
       ? anchor.x - tooltipWidth.value - 14
       : preferredLeft
   const top = clamp(anchor.y - tooltipHeight.value / 2, 8, ch.value - tooltipHeight.value - 8)
+  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight
+  const fixedLeft = stageRect.left + clamp(left, 8, cw.value - tooltipWidth.value - 8)
+  const fixedTop = stageRect.top + top
+  const maxLeft = Math.max(8, viewportWidth - tooltipWidth.value - 8)
+  const maxTop = Math.max(8, viewportHeight - tooltipHeight.value - 8)
 
   return {
-    left: `${clamp(left, 8, cw.value - tooltipWidth.value - 8)}px`,
-    top: `${top}px`,
+    position: 'fixed',
+    left: `${viewportWidth ? clamp(fixedLeft, 8, maxLeft) : fixedLeft}px`,
+    top: `${viewportHeight ? clamp(fixedTop, 8, maxTop) : fixedTop}px`,
     width: `${tooltipWidth.value}px`,
+    zIndex: '1000',
   }
 })
 
@@ -337,7 +347,12 @@ const pointGlowId = uniqueId('vdc-radar-point-glow')
 <template>
   <div ref="rootRef" class="vdc-root vdc-chart vdc-radar">
     <div v-if="!labels.length" class="vdc-empty">No chart data yet.</div>
-    <div v-else-if="cw > 0 && ch > 0" class="vdc-radar-stage" @mouseleave="clearHover">
+    <div
+      v-else-if="cw > 0 && ch > 0"
+      ref="stageRef"
+      class="vdc-radar-stage"
+      @mouseleave="clearHover"
+    >
       <svg class="vdc-radar-svg" :width="cw" :height="ch" :viewBox="`0 0 ${cw} ${ch}`">
         <defs>
           <filter :id="pointGlowId" x="-250%" y="-250%" width="600%" height="600%">
@@ -428,31 +443,33 @@ const pointGlowId = uniqueId('vdc-radar-point-glow')
         />
       </svg>
 
-      <div
-        v-if="hoveredIndex !== null && hoverRows.length"
-        class="vdc-radar-tooltip"
-        :style="{
-          ...tooltipStyle,
-          borderColor: palette.tooltipBorder,
-          background: palette.tooltipBg,
-          color: palette.tooltipText,
-          boxShadow: '0 18px 32px rgba(0, 0, 0, 0.28)',
-        }"
-      >
-        <div class="vdc-radar-tooltip-title">{{ hoverLabel }}</div>
+      <Teleport to="body">
         <div
-          v-for="row in hoverRows"
-          :key="row.name"
-          class="vdc-radar-tooltip-row"
-          :style="{ color: palette.tooltipText }"
+          v-if="hoveredIndex !== null && hoverRows.length"
+          class="vdc-radar-tooltip"
+          :style="{
+            ...tooltipStyle,
+            borderColor: palette.tooltipBorder,
+            background: palette.tooltipBg,
+            color: palette.tooltipText,
+            boxShadow: '0 18px 32px rgba(0, 0, 0, 0.28)',
+          }"
         >
-          <div class="vdc-radar-tooltip-series">
-            <span class="vdc-radar-tooltip-swatch" :style="{ backgroundColor: row.color }" />
-            <span :style="{ color: palette.tooltipMuted }">{{ row.name }}</span>
+          <div class="vdc-radar-tooltip-title">{{ hoverLabel }}</div>
+          <div
+            v-for="row in hoverRows"
+            :key="row.name"
+            class="vdc-radar-tooltip-row"
+            :style="{ color: palette.tooltipText }"
+          >
+            <div class="vdc-radar-tooltip-series">
+              <span class="vdc-radar-tooltip-swatch" :style="{ backgroundColor: row.color }" />
+              <span :style="{ color: palette.tooltipMuted }">{{ row.name }}</span>
+            </div>
+            <strong>{{ formatHoverValue(row.value) }}</strong>
           </div>
-          <strong>{{ formatHoverValue(row.value) }}</strong>
         </div>
-      </div>
+      </Teleport>
     </div>
   </div>
 </template>

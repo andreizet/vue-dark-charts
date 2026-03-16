@@ -59,6 +59,24 @@
   width: 100%;
 }
 
+.vdc-donut.is-compact {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.vdc-donut-canvas {
+  position: relative;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.vdc-donut-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .vdc-radial {
   display: grid;
   place-items: center;
@@ -69,6 +87,13 @@
 .vdc-radial-canvas {
   position: relative;
   flex-shrink: 0;
+  max-width: 100%;
+}
+
+.vdc-radial-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .vdc-radial-track,
@@ -268,11 +293,6 @@
     radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), transparent 24%),
     linear-gradient(180deg, #070a11 0%, #0f1720 100%);
   color: var(--vdc-surface-text);
-  font-family:
-    "IBM Plex Sans",
-    "Avenir Next",
-    "Segoe UI",
-    sans-serif;
 }
 
 .vdc-demo[data-vdc-theme='light'] {

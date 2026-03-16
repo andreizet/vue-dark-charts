@@ -35,6 +35,7 @@ describe('RadarChart', () => {
 
   it('shows a shared tooltip for the hovered axis', async () => {
     const wrapper = mount(RadarChart, {
+      attachTo: document.body,
       props: {
         series: [
           {
@@ -64,11 +65,15 @@ describe('RadarChart', () => {
     await wrapper.findAll('.vdc-radar-zone')[1].trigger('mouseenter')
     await nextTick()
 
-    expect(wrapper.find('.vdc-radar-tooltip').exists()).toBe(true)
-    expect(wrapper.text()).toContain('April')
-    expect(wrapper.text()).toContain('Desktop')
-    expect(wrapper.text()).toContain('273')
-    expect(wrapper.text()).toContain('Mobile')
-    expect(wrapper.text()).toContain('203')
+    const tooltip = document.body.querySelector('.vdc-radar-tooltip')
+
+    expect(tooltip).not.toBeNull()
+    expect(document.body.textContent).toContain('April')
+    expect(document.body.textContent).toContain('Desktop')
+    expect(document.body.textContent).toContain('273')
+    expect(document.body.textContent).toContain('Mobile')
+    expect(document.body.textContent).toContain('203')
+
+    wrapper.unmount()
   })
 })

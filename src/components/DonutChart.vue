@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, ref, toRef } from 'vue'
+import { computed, reactive, ref, toRef, type CSSProperties } from 'vue'
+import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
 import type { DonutChartProps, DonutSegment } from '../types'
 
@@ -12,7 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const rootRef = ref<HTMLDivElement | null>(null)
-const chartWrapper = ref<HTMLDivElement | null>(null)
+const { width: rootWidth } = useResize(rootRef)
 const { palette } = useTheme(rootRef, toRef(props, 'theme'))
 
 const hiddenSegments = reactive(new Set<number>())
@@ -23,6 +24,10 @@ const tooltip = ref({
   y: 0,
   visible: false,
 })
+
+const TOOLTIP_OFFSET = 12
+const TOOLTIP_MAX_WIDTH = 240
+const TOOLTIP_SAFE_MARGIN = 12
 
 const fallbackColors = computed(() => [
   '#3b82f6',
@@ -65,6 +70,7 @@ const OUTER_RADIUS = 100
 const INNER_RADIUS = 55
 const GAP_DEGREES = 3
 const CORNER_RADIUS = 6
+const VIEWBOX_SIZE = CX * 2
 
 function polarToCartesian(radius: number, angleDeg: number) {
   const radians = ((angleDeg - 90) * Math.PI) / 180
@@ -138,12 +144,61 @@ const hoveredSegment = computed(() =>
   hoveredIndex.value !== null ? allSegments.value[hoveredIndex.value] : null,
 )
 
+const compactLayout = computed(() => rootWidth.value > 0 && rootWidth.value < 440)
+const chartSize = computed(() => {
+  if (!rootWidth.value) {
+    return VIEWBOX_SIZE
+  }
+
+  const available = compactLayout.value ? rootWidth.value - 24 : rootWidth.value * 0.46
+  return clamp(Math.round(available), 120, VIEWBOX_SIZE)
+})
+
+const tooltipStyle = computed<CSSProperties>(() => {
+  if (!tooltip.value.visible) {
+    return {}
+  }
+
+  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight
+  const halfWidth = TOOLTIP_MAX_WIDTH / 2
+  const minLeft = halfWidth + TOOLTIP_SAFE_MARGIN
+  const maxLeft = Math.max(minLeft, viewportWidth - halfWidth - TOOLTIP_SAFE_MARGIN)
+  const left = viewportWidth
+    ? clamp(tooltip.value.x, minLeft, maxLeft)
+    : tooltip.value.x
+  const top = viewportHeight
+    ? clamp(tooltip.value.y, TOOLTIP_OFFSET + 44, viewportHeight - TOOLTIP_SAFE_MARGIN)
+    : tooltip.value.y
+
+  return {
+    position: 'fixed',
+    left: `${left}px`,
+    top: `${top}px`,
+    transform: `translate(-50%, calc(-100% - ${TOOLTIP_OFFSET}px))`,
+    pointerEvents: 'none',
+    zIndex: '1000',
+    maxWidth: `${TOOLTIP_MAX_WIDTH}px`,
+    padding: '0.55rem 0.75rem',
+    borderRadius: '12px',
+    border: `1px solid ${palette.value.tooltipBorder}`,
+    background: palette.value.tooltipBg,
+    color: palette.value.tooltipText,
+    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
+    fontSize: '0.75rem',
+  }
+})
+
 function formatValue(value: number): string {
   if (props.format) {
     return props.format(value)
   }
 
   return value.toLocaleString('en-US')
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }
 
 function toggleSegment(index: number) {
@@ -160,14 +215,9 @@ function toggleSegment(index: number) {
 
 function onArcMove(event: MouseEvent, index: number) {
   hoveredIndex.value = index
-  if (!chartWrapper.value) {
-    return
-  }
-
-  const rect = chartWrapper.value.getBoundingClientRect()
   tooltip.value = {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top - 12,
+    x: event.clientX,
+    y: event.clientY,
     visible: true,
   }
 }
@@ -201,9 +251,9 @@ function onSegmentClick(index: number) {
 <template>
   <div ref="rootRef" class="vdc-root vdc-chart">
     <div v-if="!allSegments.length" class="vdc-empty">No chart data yet.</div>
-    <div v-else class="vdc-donut">
-      <div ref="chartWrapper" style="position: relative; flex-shrink: 0;">
-        <svg :width="CX * 2" :height="CY * 2" :viewBox="`0 0 ${CX * 2} ${CY * 2}`">
+    <div v-else :class="['vdc-donut', { 'is-compact': compactLayout }]">
+      <div class="vdc-donut-canvas" :style="{ width: `${chartSize}px` }">
+        <svg :width="chartSize" :height="chartSize" :viewBox="`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`">
           <defs>
             <filter
               v-for="arc in arcs"
@@ -259,41 +309,26 @@ function onSegmentClick(index: number) {
           </text>
         </svg>
 
-        <div
-          v-if="tooltip.visible && hoveredSegment"
-          :style="{
-            position: 'absolute',
-            left: `${tooltip.x}px`,
-            top: `${tooltip.y}px`,
-            transform: 'translate(-50%, -100%)',
-            pointerEvents: 'none',
-            zIndex: '10',
-            padding: '0.55rem 0.75rem',
-            borderRadius: '12px',
-            border: `1px solid ${palette.tooltipBorder}`,
-            background: palette.tooltipBg,
-            color: palette.tooltipText,
-            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
-            fontSize: '0.75rem',
-          }"
-        >
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span
-              :style="{
-                width: '0.5rem',
-                height: '0.5rem',
-                borderRadius: '999px',
-                backgroundColor: hoveredSegment.color,
-                display: 'inline-block',
-              }"
-            />
-            <span style="font-weight: 600;">{{ hoveredSegment.label }}</span>
+        <Teleport to="body">
+          <div v-if="tooltip.visible && hoveredSegment" :style="tooltipStyle">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span
+                :style="{
+                  width: '0.5rem',
+                  height: '0.5rem',
+                  borderRadius: '999px',
+                  backgroundColor: hoveredSegment.color,
+                  display: 'inline-block',
+                }"
+              />
+              <span style="font-weight: 600;">{{ hoveredSegment.label }}</span>
+            </div>
+            <div :style="{ marginTop: '0.2rem', color: palette.tooltipMuted }">
+              {{ formatValue(hoveredSegment.value) }} ·
+              {{ total ? ((hoveredSegment.value / total) * 100).toFixed(1) : '0.0' }}%
+            </div>
           </div>
-          <div :style="{ marginTop: '0.2rem', color: palette.tooltipMuted }">
-            {{ formatValue(hoveredSegment.value) }} ·
-            {{ total ? ((hoveredSegment.value / total) * 100).toFixed(1) : '0.0' }}%
-          </div>
-        </div>
+        </Teleport>
       </div>
 
       <div class="vdc-donut-legend">

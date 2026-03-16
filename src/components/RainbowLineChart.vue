@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch, onUnmounted } from 'vue'
+import { computed, ref, toRef, watch, onUnmounted, type CSSProperties } from 'vue'
 import { useResize } from '../composables/useResize'
 import { useTheme } from '../composables/useTheme'
 import { formatTooltipValue, formatValue } from '../utils/format'
@@ -163,6 +163,12 @@ const hoveredColor = computed(() =>
 
 const tooltipWidth = 148
 const tooltipHeight = 44
+const TOOLTIP_SAFE_MARGIN = 8
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
 const tooltipX = computed(() => {
   const next = hoveredX.value + 14
   return next + tooltipWidth > cw.value - PAD.right
@@ -246,6 +252,33 @@ const displayedPoint = computed(() => {
   }
 
   return props.points[index]
+})
+
+const tooltipStyle = computed<CSSProperties>(() => {
+  const rootRect = rootRef.value?.getBoundingClientRect()
+  if (!rootRect || !displayedPoint.value) {
+    return {}
+  }
+
+  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight
+  const maxLeft = Math.max(TOOLTIP_SAFE_MARGIN, viewportWidth - tooltipWidth - TOOLTIP_SAFE_MARGIN)
+  const maxTop = Math.max(TOOLTIP_SAFE_MARGIN, viewportHeight - tooltipHeight - TOOLTIP_SAFE_MARGIN)
+
+  return {
+    position: 'fixed',
+    left: `${viewportWidth ? clamp(rootRect.left + animTooltipX.value, TOOLTIP_SAFE_MARGIN, maxLeft) : rootRect.left + animTooltipX.value}px`,
+    top: `${viewportHeight ? clamp(rootRect.top + animTooltipY.value, TOOLTIP_SAFE_MARGIN, maxTop) : rootRect.top + animTooltipY.value}px`,
+    width: `${tooltipWidth}px`,
+    padding: '0.45rem 0.65rem',
+    borderRadius: '6px',
+    border: `1px solid ${hoveredColor.value}`,
+    background: palette.value.tooltipBg,
+    color: palette.value.tooltipText,
+    boxShadow: '0 16px 30px rgba(0, 0, 0, 0.22)',
+    pointerEvents: 'none',
+    zIndex: '1000',
+  }
 })
 
 const gradientId = uniqueId('vdc-rainbow-gradient')
@@ -336,7 +369,7 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
         :y="tick.y + 4"
         text-anchor="end"
         :fill="palette.axisText"
-        style="font-size: 11px; font-family: ui-monospace, monospace;"
+        style="font-size: 11px;"
       >
         {{ formatChartValue(tick.value) }}
       </text>
@@ -373,40 +406,29 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
         />
         <circle :cx="animX" :cy="animY" r="3" :fill="hoveredColor" :opacity="animOpacity" />
         <circle :cx="animX" :cy="animY" r="1.5" fill="#ffffff" :opacity="0.9 * animOpacity" />
-        <g :transform="`translate(${animTooltipX}, ${animTooltipY})`" :opacity="animOpacity">
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            :fill="palette.tooltipBg"
-          />
-          <rect
-            :width="tooltipWidth"
-            :height="tooltipHeight"
-            rx="6"
-            fill="none"
-            :stroke="hoveredColor"
-            stroke-width="0.75"
-            stroke-opacity="0.4"
-          />
-          <text
-            x="10"
-            y="16"
-            :fill="palette.tooltipMuted"
-            style="font-size: 10px;"
-          >
-            {{ displayedPoint.x }}
-          </text>
-          <text
-            x="10"
-            y="33"
-            :fill="hoveredColor"
-            style="font-size: 13px; font-weight: 700; font-family: ui-monospace, monospace;"
-          >
-            {{ formatHoverValue(displayedPoint.y) }}
-          </text>
-        </g>
       </template>
     </svg>
+
+    <Teleport to="body">
+      <div
+        v-if="(hoveredIndex !== null || animOpacity > 0.02) && displayedPoint"
+        :style="{
+          ...tooltipStyle,
+          opacity: `${animOpacity}`,
+        }"
+      >
+        <div :style="{ color: palette.tooltipMuted, fontSize: '10px' }">{{ displayedPoint.x }}</div>
+        <div
+          :style="{
+            color: hoveredColor,
+            fontSize: '13px',
+            fontWeight: '700',
+            marginTop: '0.2rem',
+          }"
+        >
+          {{ formatHoverValue(displayedPoint.y) }}
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

@@ -3,175 +3,682 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vue-dark-charts</title>
+    <title>vue-dark-charts — Beautiful charts for Vue 3</title>
+    <meta name="description" content="Lightweight Vue 3 SVG chart components with zero dependencies. Dark-first, fully themeable, responsive by default." />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./dist/style.css" />
     <style>
+      :root {
+        --bg-base:     #020b18;
+        --bg-surface:  #060f20;
+        --bg-elevated: #0a1628;
+        --bg-overlay:  #0d1e35;
+        --accent-primary:   #3b82f6;
+        --accent-secondary: #06b6d4;
+        --accent-success:   #10b981;
+        --accent-warning:   #f59e0b;
+        --accent-danger:    #ef4444;
+        --text-primary:   #f0f6ff;
+        --text-secondary: #94a3b8;
+        --text-muted:     #475569;
+        --border-subtle:  rgba(255,255,255,0.05);
+        --border-default: rgba(255,255,255,0.10);
+        --border-glow:    rgba(59,130,246,0.45);
+        --glow-blue:    0 0 20px rgba(59,130,246,0.35), 0 0 60px rgba(59,130,246,0.15);
+        --glow-cyan:    0 0 20px rgba(6,182,212,0.35),  0 0 60px rgba(6,182,212,0.15);
+        --glow-emerald: 0 0 20px rgba(16,185,129,0.35), 0 0 60px rgba(16,185,129,0.15);
+        --glass-bg:     rgba(6,15,32,0.65);
+        --glass-border: rgba(255,255,255,0.08);
+        --glass-blur:   blur(16px) saturate(180%);
+        --font-ui:   'Inter', system-ui, -apple-system, sans-serif;
+        --font-code: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+        --text-xs:   0.75rem;
+        --text-sm:   0.875rem;
+        --text-base: 1rem;
+        --text-lg:   1.125rem;
+        --text-xl:   1.25rem;
+        --text-2xl:  1.5rem;
+        --text-3xl:  1.875rem;
+      }
+
+      .site-shell {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(59,130,246,0.08), transparent 28%),
+          linear-gradient(180deg, var(--bg-base) 0%, var(--bg-surface) 100%);
+        color: var(--text-primary);
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      .site-shell[data-vdc-theme='light'] {
+        --bg-base: #eef4fb;
+        --bg-surface: #f8fbff;
+        --bg-elevated: #e7eef8;
+        --bg-overlay: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-subtle: rgba(15,23,42,0.08);
+        --border-default: rgba(15,23,42,0.14);
+        --border-glow: rgba(59,130,246,0.22);
+        --glow-blue: 0 16px 38px rgba(59,130,246,0.12);
+        --glow-cyan: 0 16px 38px rgba(6,182,212,0.10);
+        --glow-emerald: 0 16px 38px rgba(16,185,129,0.10);
+        --glass-bg: rgba(255,255,255,0.82);
+        --glass-border: rgba(148,163,184,0.28);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
       body {
-        margin: 0;
+        background: var(--bg-base);
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        font-size: var(--text-base);
+        line-height: 1.5;
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
       }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: var(--bg-base); }
+      ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
 
-      .vdc-demo-actions {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-top: 14px;
-        flex-wrap: wrap;
+      .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+      @media (min-width: 768px) { .container { padding: 0 2rem; } }
+
+      /* NAV */
+      .nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        height: 64px; display: flex; align-items: center;
+        background: rgba(2,11,24,0.80);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-bottom: 1px solid var(--border-subtle);
+        transition: border-color 0.3s, background 0.3s;
       }
-
-      .vdc-demo-view-switch {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+      .nav.scrolled { background: rgba(2,11,24,0.96); border-bottom-color: var(--border-default); }
+      .site-shell[data-vdc-theme='light'] .nav {
+        background: rgba(248,250,252,0.84);
+        border-bottom-color: rgba(15,23,42,0.08);
       }
+      .site-shell[data-vdc-theme='light'] .nav.scrolled {
+        background: rgba(248,250,252,0.96);
+        border-bottom-color: rgba(15,23,42,0.12);
+      }
+      .nav__inner { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 1rem; }
+      .nav__logo {
+        display: flex; align-items: center; gap: 0.5rem;
+        text-decoration: none; color: var(--text-primary);
+        font-weight: 700; font-size: var(--text-lg); letter-spacing: -0.02em;
+        white-space: nowrap; flex-shrink: 0;
+      }
+      .nav__logo-icon {
+        width: 28px; height: 28px; border-radius: 6px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: var(--glow-blue); flex-shrink: 0;
+        overflow: hidden;
+      }
+      .nav__logo-icon svg { width: 16px; height: 16px; color: white; }
+      .nav__logo-icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+      .nav__logo-text span { color: var(--accent-secondary); }
+      .nav__tabs { display: flex; align-items: center; gap: 0.25rem; }
+      .nav__tab {
+        padding: 0.375rem 0.875rem; border-radius: 0.375rem;
+        color: var(--text-secondary); font-size: var(--text-sm); font-weight: 500;
+        cursor: pointer; border: none; background: transparent; font-family: var(--font-ui);
+        transition: color 0.2s, background 0.2s;
+      }
+      .nav__tab:hover { color: var(--text-primary); background: var(--border-subtle); }
+      .nav__tab.active { color: var(--accent-secondary); background: rgba(6,182,212,0.08); }
+      .nav__actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+      .star-btn {
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        padding: 0.375rem 0.875rem;
+        background: rgba(255,255,255,0.05); border: 1px solid var(--border-default);
+        border-radius: 0.5rem; color: var(--text-secondary);
+        font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 500;
+        text-decoration: none; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+      }
+      .star-btn:hover { background: rgba(59,130,246,0.10); border-color: var(--accent-primary); color: var(--text-primary); box-shadow: var(--glow-blue); }
+      .star-btn svg { width: 14px; height: 14px; color: #f59e0b; fill: #f59e0b; transition: transform 0.2s; }
+      .star-btn:hover svg { transform: scale(1.2) rotate(-10deg); }
+      .theme-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 0.5rem;
+        background: rgba(255,255,255,0.05); border: 1px solid var(--border-default);
+        color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+      }
+      .theme-btn:hover { color: var(--text-primary); border-color: var(--border-default); background: rgba(255,255,255,0.08); }
+      .theme-btn svg { width: 16px; height: 16px; }
+      .site-shell[data-vdc-theme='light'] .star-btn,
+      .site-shell[data-vdc-theme='light'] .theme-btn {
+        background: rgba(255,255,255,0.74);
+      }
+      .site-shell[data-vdc-theme='light'] .nav__tab:hover,
+      .site-shell[data-vdc-theme='light'] .theme-btn:hover {
+        background: rgba(15,23,42,0.05);
+      }
+      @media (max-width: 640px) { .nav__tabs { display: none; } }
 
-      .vdc-demo-action {
+      /* PAGE */
+      .page { padding-top: 64px; }
+      .page-section { display: none; }
+      .page-section.active { display: block; }
+
+      /* HERO */
+      .hero {
+        position: relative; min-height: calc(100vh - 64px);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      }
+      .hero__bg {
+        position: absolute; inset: 0; z-index: 0;
+        background-image:
+          linear-gradient(rgba(59,130,246,0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(59,130,246,0.035) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+        -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+      }
+      .site-shell[data-vdc-theme='light'] .hero__bg {
+        background-image:
+          linear-gradient(rgba(59,130,246,0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(59,130,246,0.08) 1px, transparent 1px);
+        opacity: 0.8;
+      }
+      .hero__orb {
+        position: absolute; border-radius: 50%; filter: blur(80px);
+        opacity: 0.22; animation: float 8s ease-in-out infinite; pointer-events: none;
+      }
+      .hero__orb--blue  { width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%); top: -10%; left: -10%; animation-delay: 0s; }
+      .hero__orb--cyan  { width: 500px; height: 500px; background: radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%); bottom: -5%; right: -5%; animation-delay: -3s; }
+      .hero__orb--green { width: 350px; height: 350px; background: radial-gradient(circle, var(--accent-success) 0%, transparent 70%); top: 30%; right: 20%; opacity: 0.14; animation-delay: -6s; }
+      .hero__content {
+        position: relative; z-index: 1; text-align: center;
+        max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem;
+      }
+      .hero__eyebrow {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.375rem 1rem;
+        background: rgba(59,130,246,0.10); border: 1px solid rgba(59,130,246,0.25);
+        border-radius: 9999px; font-size: var(--text-xs); font-weight: 600;
+        letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-secondary);
+        margin-bottom: 1.5rem; animation: fade-in-up 0.6s ease both;
+      }
+      .hero__dot { width: 6px; height: 6px; background: var(--accent-success); border-radius: 50%; box-shadow: 0 0 8px var(--accent-success); animation: glow-pulse 2s ease-in-out infinite; }
+      .hero__heading {
+        font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 800;
+        line-height: 1.15; letter-spacing: -0.03em; color: var(--text-primary);
+        margin-bottom: 1.25rem; animation: fade-in-up 0.6s 0.1s ease both;
+      }
+      .hero__heading .grad {
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-success) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      }
+      .hero__sub {
+        font-size: var(--text-lg); color: var(--text-secondary); line-height: 1.65;
+        max-width: 560px; margin: 0 auto 2.5rem; animation: fade-in-up 0.6s 0.2s ease both;
+      }
+      .hero__actions {
+        display: flex; align-items: center; justify-content: center;
+        gap: 1rem; flex-wrap: wrap; margin-bottom: 3.5rem;
+        animation: fade-in-up 0.6s 0.3s ease both;
+      }
+      .hero__charts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        max-width: 980px;
+        margin: 0 auto;
+        animation: fade-in-up 0.8s 0.4s ease both;
+      }
+      @media (min-width: 900px) {
+        .hero__charts {
+          grid-template-columns: repeat(12, minmax(0, 1fr));
+          grid-auto-rows: 124px;
+          align-items: stretch;
+        }
+      }
+      .hero__chart-box {
+        --hero-card-accent: var(--accent-primary);
         position: relative;
+        min-height: 210px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+          var(--glass-bg);
+        backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border); border-radius: 1.15rem;
+        overflow: hidden;
+        transition: transform 0.32s ease, box-shadow 0.32s ease, border-color 0.32s ease;
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.05),
+          0 14px 36px rgba(0,0,0,0.22);
+      }
+      .hero__chart-box::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at top right, color-mix(in srgb, var(--hero-card-accent) 22%, transparent) 0%, transparent 42%),
+          linear-gradient(180deg, rgba(255,255,255,0.04), transparent 28%);
+        pointer-events: none;
+      }
+      .hero__chart-box::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 1rem;
+        right: 1rem;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hero-card-accent) 82%, white) 50%, transparent);
+        opacity: 0.8;
+        pointer-events: none;
+      }
+      .hero__chart-box:hover {
+        border-color: color-mix(in srgb, var(--hero-card-accent) 32%, var(--glass-border));
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.06),
+          0 18px 48px rgba(0,0,0,0.28),
+          0 0 0 1px color-mix(in srgb, var(--hero-card-accent) 12%, transparent);
+        transform: translateY(-6px) scale(1.015);
+      }
+      .hero__chart-box--line { --hero-card-accent: #22c55e; }
+      .hero__chart-box--bar { --hero-card-accent: #3b82f6; }
+      .hero__chart-box--donut { --hero-card-accent: #f97316; }
+      .hero__chart-box--radial { --hero-card-accent: #ec4899; }
+      .hero__chart-meta {
+        width: 100%!important;
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.32rem;
+        text-align: left;
+        pointer-events: none;
+      }
+      .hero__chart-label {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        border: 1px solid rgba(148, 163, 184, 0.22);
+        gap: 0.42rem;
+        padding: 0.28rem 0.55rem;
         border-radius: 999px;
-        background: rgba(15, 23, 42, 0.6);
-        color: #e2e8f0;
-        font: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          transform 0.2s ease,
-          background-color 0.2s ease,
-          border-color 0.2s ease,
-          color 0.2s ease;
+        background: rgba(2,11,24,0.34);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: color-mix(in srgb, var(--hero-card-accent) 74%, white);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
       }
-
-      .vdc-demo-action:hover,
-      .vdc-demo-action:focus-visible {
-        transform: translateY(-1px);
-        border-color: rgba(96, 165, 250, 0.45);
-        background: rgba(30, 41, 59, 0.95);
-        outline: none;
-      }
-
-      .vdc-demo-action.is-active {
-        border-color: rgba(96, 165, 250, 0.65);
-        background: rgba(37, 99, 235, 0.22);
-        color: #dbeafe;
-      }
-
-      .vdc-demo-action.is-copied {
-        border-color: rgba(74, 222, 128, 0.7);
-        background: rgba(22, 163, 74, 0.2);
-        color: #dcfce7;
-      }
-
-      .vdc-demo-action svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-      }
-
-      .vdc-demo-action::before,
-      .vdc-demo-action::after {
-        position: absolute;
-        left: 50%;
-        opacity: 0;
-        pointer-events: none;
-        transition:
-          opacity 0.18s ease,
-          transform 0.18s ease;
-      }
-
-      .vdc-demo-action::before {
+      .hero__chart-label::before {
         content: '';
-        bottom: calc(100% + 2px);
-        transform: translate(-50%, 6px);
-        border-width: 6px 6px 0;
-        border-style: solid;
-        border-color: rgba(15, 23, 42, 0.96) transparent transparent transparent;
+        width: 0.38rem;
+        height: 0.38rem;
+        border-radius: 999px;
+        background: var(--hero-card-accent);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--hero-card-accent) 68%, transparent);
+      }
+      .hero__chart-value {
+        color: var(--text-primary);
+        font-size: clamp(1.2rem, 2vw, 1.7rem);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .hero__chart-note {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        width: 100%;
+      }
+      .hero__chart-box--bar .hero__chart-meta {
+        max-width: 8rem;
+      }
+      .hero__chart-box--donut .hero__chart-meta {
+        max-width: 7.75rem;
+      }
+      .hero__chart-box--radial .hero__chart-meta {
+        top: auto;
+        bottom: 1rem;
+        max-width: 9.5rem;
+      }
+      .hero__chart-canvas {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        padding: 3.9rem 0.5rem 0.5rem;
+      }
+      .hero__chart-canvas > .vdc-root.vdc-chart {
+        min-height: 0;
+      }
+      .hero__chart-canvas > * {
+        width: 100%;
+        height: 100%;
+      }
+      .hero__chart-box--line .hero__chart-canvas {
+        padding: 6rem 0.75rem 0.45rem 0.35rem;
+      }
+      .hero__chart-box--bar .hero__chart-canvas {
+        padding: 5.4rem 0.55rem 0.45rem 0.45rem;
+      }
+      .hero__chart-box--donut .hero__chart-canvas {
+        padding: 1rem 0.65rem 0.8rem 9.75rem;
+      }
+      .hero__chart-box--radial .hero__chart-canvas {
+        padding: 4.35rem 0.3rem 0.45rem 0.3rem;
+      }
+      .hero__chart-box--bar .hero__chart-note,
+      .hero__chart-box--radial .hero__chart-note {
+        display: none;
+      }
+      .hero__chart-box--radial .hero__chart-meta {
+        top: 1rem;
+        bottom: auto;
+        max-width: 9rem;
+      }
+      @media (max-width: 899px) {
+        .hero__chart-note {
+          display: none;
+        }
+        .hero__chart-box--donut .hero__chart-canvas {
+          padding: 4.2rem 0.5rem 0.5rem 0.5rem;
+        }
+        .hero__chart-box--donut .vdc-donut-legend {
+          display: none;
+        }
+        .hero__chart-box--donut .vdc-donut,
+        .hero__chart-box--radial .vdc-radial {
+          align-items: center;
+          justify-items: center;
+        }
+        .hero__chart-box--radial .hero__chart-meta {
+          top: 1rem;
+          bottom: auto;
+          max-width: 10rem;
+        }
+        .hero__chart-box--radial .hero__chart-canvas {
+          padding: 4.2rem 0.4rem 0.4rem 0.4rem;
+        }
+      }
+      @media (min-width: 900px) {
+        .hero__chart-box--line {
+          grid-column: 1 / span 5;
+          grid-row: 1 / span 2;
+        }
+        .hero__chart-box--bar {
+          grid-column: 6 / span 3;
+          grid-row: 1 / span 2;
+        }
+        .hero__chart-box--donut {
+          grid-column: 1 / span 8;
+          grid-row: 3 / span 2;
+          transform: translateY(-0.3rem);
+        }
+        .hero__chart-box--radial {
+          grid-column: 9 / span 4;
+          grid-row: 1 / span 4;
+        }
+      }
+      .hero__chart-box:hover.hero__chart-box--donut {
+        transform: translateY(calc(-0.3rem - 6px)) scale(1.015);
+      }
+      .site-shell[data-vdc-theme='light'] .hero__chart-box {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.58)),
+          var(--glass-bg);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.7),
+          0 18px 40px rgba(37,99,235,0.08);
+      }
+      .site-shell[data-vdc-theme='light'] .hero__chart-label {
+        background: rgba(255,255,255,0.72);
+        border-color: rgba(148,163,184,0.28);
+      }
+      .site-shell[data-vdc-theme='light'] .hero__chart-note {
+        color: var(--text-secondary);
       }
 
-      .vdc-demo-action::after {
-        content: attr(data-tooltip);
-        bottom: calc(100% + 10px);
-        transform: translate(-50%, 6px);
-        padding: 6px 8px;
-        border-radius: 8px;
-        background: rgba(15, 23, 42, 0.96);
-        color: #e2e8f0;
-        font-size: 11px;
-        font-weight: 500;
-        line-height: 1.2;
-        white-space: nowrap;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.32);
-        z-index: 2;
+      /* BUTTONS */
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+        padding: 0.625rem 1.375rem; border-radius: 0.5rem;
+        font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600;
+        line-height: 1; text-decoration: none; cursor: pointer;
+        border: 1px solid transparent; transition: all 0.2s; white-space: nowrap;
       }
-
-      .vdc-demo-action:hover::before,
-      .vdc-demo-action:hover::after,
-      .vdc-demo-action:focus-visible::before,
-      .vdc-demo-action:focus-visible::after {
-        opacity: 1;
-        transform: translate(-50%, 0);
+      .btn--lg { padding: 0.875rem 2rem; font-size: var(--text-base); border-radius: 0.625rem; }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-primary) 0%, #2563eb 100%);
+        color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
       }
+      .btn-primary:hover { background: linear-gradient(135deg, #60a5fa 0%, var(--accent-primary) 100%); box-shadow: var(--glow-blue); transform: translateY(-1px); }
+      .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
+      .btn-ghost:hover { color: var(--text-primary); background: var(--border-subtle); }
 
-      .vdc-demo-code {
-        margin: 14px 0 0;
-        padding: 14px 16px;
-        border-radius: 14px;
-        overflow-x: auto;
-        background: rgba(2, 6, 23, 0.9);
-        color: #dbeafe;
-        font-size: 12px;
-        line-height: 1.55;
-        font-family:
-          ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
-          Courier New, monospace;
-        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
-        white-space: pre-wrap;
+      /* SECTION */
+      .section { padding: 5rem 0; }
+      .section--alt { background: linear-gradient(180deg, transparent, rgba(6,182,212,0.02) 50%, transparent); }
+      .site-shell[data-vdc-theme='light'] .section--alt {
+        background: linear-gradient(180deg, transparent, rgba(59,130,246,0.04) 50%, transparent);
       }
+      .section__header { text-align: center; margin-bottom: 3rem; }
+      .section__eyebrow { display: inline-block; font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-secondary); margin-bottom: 0.75rem; }
+      .section__heading { font-size: clamp(var(--text-2xl), 4vw, var(--text-3xl)); font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 1rem; }
+      .section__desc { font-size: var(--text-lg); color: var(--text-secondary); line-height: 1.65; max-width: 580px; margin: 0 auto; }
 
-      [data-vdc-theme='light'] .vdc-demo-code {
-        background: rgba(226, 232, 240, 0.95);
+      /* FEATURES */
+      .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      @media (min-width: 768px) { .features-grid { grid-template-columns: repeat(3, 1fr); } }
+      .feature-card {
+        background: var(--glass-bg); border: 1px solid var(--glass-border);
+        border-radius: 1rem; padding: 1.5rem; position: relative; overflow: hidden;
+        transition: all 0.3s;
+      }
+      .feature-card:hover { border-color: rgba(59,130,246,0.20); transform: translateY(-2px); }
+      .feature-card__icon {
+        width: 40px; height: 40px; border-radius: 0.5rem;
+        display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
+      }
+      .feature-card__icon--blue  { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25); color: var(--accent-primary); }
+      .feature-card__icon--cyan  { background: rgba(6,182,212,0.15);  border: 1px solid rgba(6,182,212,0.25);  color: var(--accent-secondary); }
+      .feature-card__icon--green { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); color: var(--accent-success); }
+      .feature-card__icon svg { width: 20px; height: 20px; }
+      .feature-card__title { font-size: var(--text-base); font-weight: 600; color: var(--text-primary); margin-bottom: 0.375rem; }
+      .feature-card__body { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
+
+      /* INSTALL BANNER */
+      .install-banner {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; flex-wrap: wrap;
+        background: var(--glass-bg); border: 1px solid var(--glass-border);
+        border-radius: 1rem; padding: 1.25rem 1.75rem;
+        backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+      }
+      .install-banner__label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.375rem; }
+      .install-banner__cmd { font-family: var(--font-code); font-size: var(--text-base); color: var(--accent-secondary); }
+      .install-banner__cmd span { color: var(--text-muted); margin-right: 0.5rem; }
+      .copy-btn {
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        padding: 0.5rem 1rem; border-radius: 0.5rem;
+        background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25);
+        color: var(--accent-primary); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600;
+        cursor: pointer; transition: all 0.2s;
+      }
+      .copy-btn:hover { background: rgba(59,130,246,0.20); border-color: rgba(59,130,246,0.45); box-shadow: var(--glow-blue); }
+      .copy-btn.copied { color: var(--accent-success); background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.25); }
+      .copy-btn svg { width: 14px; height: 14px; }
+
+      /* CATEGORY TABS */
+      .cat-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+      .cat-tab {
+        padding: 0.5rem 1.25rem; border-radius: 9999px;
+        font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary);
+        cursor: pointer; border: 1px solid var(--border-subtle);
+        background: transparent; font-family: var(--font-ui); transition: all 0.2s;
+      }
+      .cat-tab:hover { color: var(--text-primary); border-color: var(--border-default); }
+      .cat-tab.active { background: var(--accent-primary); color: white; border-color: transparent; box-shadow: var(--glow-blue); }
+
+      /* CHART GRID */
+      .chart-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+      @media (min-width: 640px)  { .chart-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1024px) { .chart-grid { grid-template-columns: repeat(3, 1fr); } }
+
+      /* CHART CARD */
+      .chart-card {
+        background: var(--glass-bg); border: 1px solid var(--glass-border);
+        border-radius: 1rem; overflow: hidden; display: flex; flex-direction: column;
+        transition: all 0.3s; position: relative; min-height: 0;
+      }
+      .chart-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(59,130,246,0.5), rgba(6,182,212,0.5), transparent);
+        opacity: 0; transition: opacity 0.3s;
+      }
+      .chart-card:hover { border-color: rgba(59,130,246,0.25); box-shadow: var(--glow-blue); transform: translateY(-4px); }
+      .chart-card:hover::before { opacity: 1; }
+      .chart-card__preview {
+        display: flex; align-items: stretch;
+        padding: 0.75rem; height: 280px; min-height: 280px;
+        background: rgba(0,0,0,0.20); border-bottom: 1px solid var(--border-subtle);
+        overflow: hidden; isolation: isolate; flex: 0 0 auto;
+      }
+      .chart-card__preview > * { flex: 1 1 auto; min-width: 0; min-height: 0; }
+      .chart-card__code {
+        margin: 0; padding: 1rem 1.25rem;
+        background: rgba(0,0,0,0.35); border-bottom: 1px solid var(--border-subtle);
+        font-family: var(--font-code); font-size: 0.7rem; line-height: 1.6;
+        color: #cbd5e1; overflow-x: auto; min-height: 280px; max-height: 280px;
+        white-space: pre; overflow-y: auto; flex: 0 0 auto;
+      }
+      .chart-card__body {
+        padding: 1rem 1.25rem 1.25rem;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-height: 0;
+      }
+      .chart-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+      .chart-card__title { font-size: var(--text-base); font-weight: 600; color: var(--text-primary); }
+      .chart-card__desc { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.55; flex: 1; }
+      .chart-card__actions { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+      .site-shell[data-vdc-theme='light'] .chart-card__preview {
+        background: rgba(241,245,249,0.94);
+      }
+      .site-shell[data-vdc-theme='light'] .chart-card__code,
+      .site-shell[data-vdc-theme='light'] .docs-code {
+        background: rgba(226,232,240,0.92);
         color: #0f172a;
-        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+      }
+      .cc-btn {
+        padding: 0.25rem 0.625rem; border-radius: 0.375rem;
+        font-size: var(--text-xs); font-weight: 500; color: var(--text-muted);
+        cursor: pointer; border: 1px solid transparent; background: transparent;
+        font-family: var(--font-ui); transition: all 0.15s;
+      }
+      .cc-btn:hover { color: var(--text-secondary); border-color: var(--border-subtle); }
+      .cc-btn.active { color: var(--accent-primary); border-color: rgba(59,130,246,0.30); background: rgba(59,130,246,0.08); }
+      .cc-btn.copied { color: var(--accent-success); border-color: rgba(16,185,129,0.30); background: rgba(16,185,129,0.08); }
+
+      /* DOCS */
+      .docs-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; padding: 2rem 0 4rem; }
+      @media (min-width: 900px) { .docs-layout { grid-template-columns: 220px 1fr; align-items: start; } }
+      .docs-sidebar {
+        position: sticky; top: 80px;
+        background: var(--glass-bg); border: 1px solid var(--glass-border);
+        border-radius: 0.75rem; padding: 1rem; display: none;
+      }
+      @media (min-width: 900px) { .docs-sidebar { display: block; } }
+      .docs-sidebar__group { margin-bottom: 1.25rem; }
+      .docs-sidebar__label { font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 0 0.5rem; margin-bottom: 0.5rem; }
+      .docs-sidebar__link {
+        display: block; padding: 0.375rem 0.5rem; border-radius: 0.375rem;
+        font-size: var(--text-sm); color: var(--text-secondary); text-decoration: none;
+        transition: all 0.15s; cursor: pointer; border: none; background: transparent;
+        font-family: var(--font-ui); width: 100%; text-align: left;
+      }
+      .docs-sidebar__link:hover { color: var(--text-primary); background: var(--border-subtle); }
+      .docs-content { min-width: 0; }
+      .docs-section { margin-bottom: 3.5rem; scroll-margin-top: 80px; }
+      .docs-section__title {
+        font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary);
+        margin-bottom: 0.5rem; padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .docs-section__desc { font-size: var(--text-base); color: var(--text-secondary); line-height: 1.65; margin-bottom: 1.5rem; }
+      .docs-section__subtitle { font-size: var(--text-lg); font-weight: 600; color: var(--text-primary); margin: 1.5rem 0 0.75rem; }
+      .docs-code {
+        font-family: var(--font-code); font-size: var(--text-sm); line-height: 1.65;
+        background: rgba(0,0,0,0.40); border: 1px solid var(--border-default);
+        border-radius: 0.625rem; padding: 1rem 1.25rem; color: #cbd5e1;
+        overflow-x: auto; margin-bottom: 1.25rem; white-space: pre;
       }
 
-      [data-vdc-theme='light'] .vdc-demo-action {
-        border-color: rgba(148, 163, 184, 0.45);
-        background: rgba(248, 250, 252, 0.92);
-        color: #0f172a;
-      }
+      /* OPTIONS TABLE */
+      .options-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); border: 1px solid var(--border-subtle); border-radius: 0.75rem; overflow: hidden; margin-bottom: 1.5rem; }
+      .options-table thead { background: rgba(255,255,255,0.03); }
+      .site-shell[data-vdc-theme='light'] .options-table thead { background: rgba(15,23,42,0.03); }
+      .options-table th { padding: 0.625rem 1rem; text-align: left; font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+      .options-table td { padding: 0.75rem 1rem; color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle); vertical-align: top; line-height: 1.55; }
+      .options-table tbody tr:last-child td { border-bottom: none; }
+      .options-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+      .site-shell[data-vdc-theme='light'] .options-table tbody tr:hover { background: rgba(59,130,246,0.03); }
+      .options-table td:first-child { font-family: var(--font-code); color: var(--accent-secondary); font-size: var(--text-xs); white-space: nowrap; }
+      .options-table td:nth-child(3) { font-family: var(--font-code); color: var(--text-muted); font-size: var(--text-xs); white-space: nowrap; }
 
-      [data-vdc-theme='light'] .vdc-demo-action:hover,
-      [data-vdc-theme='light'] .vdc-demo-action:focus-visible {
-        border-color: rgba(59, 130, 246, 0.5);
-        background: #ffffff;
-      }
+      /* BADGES */
+      .badge { display: inline-flex; align-items: center; padding: 0.125rem 0.4rem; border-radius: 0.3rem; font-family: var(--font-code); font-size: 0.65rem; font-weight: 500; line-height: 1; white-space: nowrap; }
+      .badge--str  { background: rgba(52,211,153,0.12);  color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+      .badge--num  { background: rgba(251,146,60,0.12);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+      .badge--bool { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25); }
+      .badge--arr  { background: rgba(96,165,250,0.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
+      .badge--fn   { background: rgba(232,121,249,0.12); color: #e879f9; border: 1px solid rgba(232,121,249,0.25); }
+      .badge--req  { background: rgba(239,68,68,0.12);   color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
 
-      [data-vdc-theme='light'] .vdc-demo-action.is-active {
-        border-color: rgba(37, 99, 235, 0.45);
-        background: rgba(59, 130, 246, 0.12);
-        color: #1d4ed8;
-      }
+      /* FOOTER */
+      .footer { border-top: 1px solid var(--border-subtle); padding: 2.5rem 0; text-align: center; }
+      .footer__text { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6; }
+      .footer__text a { color: var(--accent-secondary); text-decoration: none; transition: color 0.2s; }
+      .footer__text a:hover { color: var(--text-primary); }
 
-      [data-vdc-theme='light'] .vdc-demo-action.is-copied {
-        border-color: rgba(34, 197, 94, 0.45);
-        background: rgba(34, 197, 94, 0.12);
-        color: #166534;
+      /* ANIMATIONS */
+      @keyframes glow-pulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor; }
+        50% { opacity: 0.6; box-shadow: 0 0 14px currentColor, 0 0 28px currentColor; }
       }
+      @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        33%       { transform: translateY(-24px) translateX(10px); }
+        66%       { transform: translateY(12px) translateX(-8px); }
+      }
+      @keyframes fade-in-up {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fade-in {
+        from { opacity: 0; } to { opacity: 1; }
+      }
+      .animate-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+      .animate-on-scroll.in-view { opacity: 1; transform: translateY(0); }
+      .stagger > *:nth-child(1) { transition-delay: 0.05s; }
+      .stagger > *:nth-child(2) { transition-delay: 0.12s; }
+      .stagger > *:nth-child(3) { transition-delay: 0.19s; }
+      .stagger > *:nth-child(4) { transition-delay: 0.26s; }
+      .stagger > *:nth-child(5) { transition-delay: 0.33s; }
+      .stagger > *:nth-child(6) { transition-delay: 0.40s; }
 
-      [data-vdc-theme='light'] .vdc-demo-action::before {
-        border-color: rgba(255, 255, 255, 0.98) transparent transparent transparent;
-      }
-
-      [data-vdc-theme='light'] .vdc-demo-action::after {
-        background: rgba(255, 255, 255, 0.98);
-        color: #0f172a;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-      }
+      /* DIVIDER */
+      hr.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border-default) 20%, var(--border-default) 80%, transparent); border: none; margin: 0; }
     </style>
   </head>
   <body>
@@ -181,333 +688,85 @@
     <script src="./dist/vue-dark-charts.iife.js"></script>
     <script>
       const { createApp } = Vue
-      const {
-        LineChart,
-        MultiLineChart,
-        RainbowLineChart,
-        BarChart,
-        DonutChart,
-        RadarChart,
-        RadialChart,
-      } = VueDarkCharts
+      const { LineChart, MultiLineChart, RainbowLineChart, BarChart, HorizontalBarChart, DonutChart, RadarChart, RadialChart } = VueDarkCharts
 
       createApp({
-        components: {
-          LineChart,
-          MultiLineChart,
-          RainbowLineChart,
-          BarChart,
-          DonutChart,
-          RadarChart,
-          RadialChart,
-        },
+        components: { LineChart, MultiLineChart, RainbowLineChart, BarChart, HorizontalBarChart, DonutChart, RadarChart, RadialChart },
         data() {
           return {
+            currentSection: 'home',
+            activeCategory: 'line',
+            isScrolled: false,
             theme: 'dark',
             cardViews: {},
             copiedSnippet: null,
             copyResetHandle: null,
+            installCopied: false,
+
             linePoints: [
-              { x: '2026-03-01', y: -320 },
-              { x: '2026-03-02', y: -110 },
-              { x: '2026-03-03', y: 140 },
-              { x: '2026-03-04', y: 280 },
-              { x: '2026-03-05', y: 120 },
-              { x: '2026-03-06', y: 420 },
+              { x: '2026-03-01', y: -320 }, { x: '2026-03-02', y: -110 },
+              { x: '2026-03-03', y: 140 },  { x: '2026-03-04', y: 280 },
+              { x: '2026-03-05', y: 120 },  { x: '2026-03-06', y: 420 },
               { x: '2026-03-07', y: 680 },
             ],
             dottedLinePoints: [
-              { x: 'Mar 1', y: 22 },
-              { x: 'Mar 2', y: 38 },
-              { x: 'Mar 3', y: 31 },
-              { x: 'Mar 4', y: 54 },
-              { x: 'Mar 5', y: 49 },
-              { x: 'Mar 6', y: 68 },
+              { x: 'Mar 1', y: 22 }, { x: 'Mar 2', y: 38 }, { x: 'Mar 3', y: 31 },
+              { x: 'Mar 4', y: 54 }, { x: 'Mar 5', y: 49 }, { x: 'Mar 6', y: 68 },
             ],
             straightLinePoints: [
-              { x: '06:00', y: 120 },
-              { x: '09:00', y: 80 },
-              { x: '12:00', y: 144 },
-              { x: '15:00', y: 96 },
-              { x: '18:00', y: 172 },
-              { x: '21:00', y: 132 },
+              { x: '06:00', y: 120 }, { x: '09:00', y: 80 },  { x: '12:00', y: 144 },
+              { x: '15:00', y: 96 },  { x: '18:00', y: 172 }, { x: '21:00', y: 132 },
             ],
             multiSeries: [
-              {
-                name: 'Momentum',
-                points: [
-                  { x: 'Mon', y: 40 },
-                  { x: 'Tue', y: 72 },
-                  { x: 'Wed', y: 52 },
-                  { x: 'Thu', y: 90 },
-                  { x: 'Fri', y: 130 },
-                ],
-              },
-              {
-                name: 'Mean Reversion',
-                color: '#38bdf8',
-                points: [
-                  { x: 'Mon', y: 18 },
-                  { x: 'Tue', y: 30 },
-                  { x: 'Wed', y: 84 },
-                  { x: 'Thu', y: 44 },
-                  { x: 'Fri', y: 65 },
-                ],
-              },
-              {
-                name: 'Swing',
-                color: '#f59e0b',
-                points: [
-                  { x: 'Mon', y: -12 },
-                  { x: 'Tue', y: 15 },
-                  { x: 'Wed', y: 26 },
-                  { x: 'Thu', y: 55 },
-                  { x: 'Fri', y: 102 },
-                ],
-              },
+              { name: 'Momentum', points: [{ x: 'Mon', y: 40 }, { x: 'Tue', y: 72 }, { x: 'Wed', y: 52 }, { x: 'Thu', y: 90 }, { x: 'Fri', y: 130 }] },
+              { name: 'Mean Reversion', color: '#38bdf8', points: [{ x: 'Mon', y: 18 }, { x: 'Tue', y: 30 }, { x: 'Wed', y: 84 }, { x: 'Thu', y: 44 }, { x: 'Fri', y: 65 }] },
+              { name: 'Swing', color: '#f59e0b', points: [{ x: 'Mon', y: -12 }, { x: 'Tue', y: 15 }, { x: 'Wed', y: 26 }, { x: 'Thu', y: 55 }, { x: 'Fri', y: 102 }] },
             ],
             dottedMultiSeries: [
-              {
-                name: 'Actual',
-                points: [
-                  { x: 'Q1', y: 32 },
-                  { x: 'Q2', y: 48 },
-                  { x: 'Q3', y: 44 },
-                  { x: 'Q4', y: 66 },
-                ],
-              },
-              {
-                name: 'Forecast',
-                dotted: true,
-                points: [
-                  { x: 'Q1', y: 24 },
-                  { x: 'Q2', y: 36 },
-                  { x: 'Q3', y: 58 },
-                  { x: 'Q4', y: 54 },
-                ],
-              },
-              {
-                name: 'Stretch',
-                dotted: true,
-                points: [
-                  { x: 'Q1', y: 18 },
-                  { x: 'Q2', y: 28 },
-                  { x: 'Q3', y: 36 },
-                  { x: 'Q4', y: 49 },
-                ],
-              },
+              { name: 'Actual', points: [{ x: 'Q1', y: 32 }, { x: 'Q2', y: 48 }, { x: 'Q3', y: 44 }, { x: 'Q4', y: 66 }] },
+              { name: 'Forecast', dotted: true, points: [{ x: 'Q1', y: 24 }, { x: 'Q2', y: 36 }, { x: 'Q3', y: 58 }, { x: 'Q4', y: 54 }] },
+              { name: 'Stretch', dotted: true, points: [{ x: 'Q1', y: 18 }, { x: 'Q2', y: 28 }, { x: 'Q3', y: 36 }, { x: 'Q4', y: 49 }] },
             ],
             rainbowPoints: [
-              { x: 'Week 1', y: -420 },
-              { x: 'Week 2', y: -140 },
-              { x: 'Week 3', y: 80 },
-              { x: 'Week 4', y: 250 },
-              { x: 'Week 5', y: -40 },
-              { x: 'Week 6', y: 390 },
+              { x: 'Week 1', y: -420 }, { x: 'Week 2', y: -140 }, { x: 'Week 3', y: 80 },
+              { x: 'Week 4', y: 250 },  { x: 'Week 5', y: -40 },  { x: 'Week 6', y: 390 },
             ],
             rainbowCustomPoints: [
-              { x: 'Jan', y: 44 },
-              { x: 'Feb', y: -20 },
-              { x: 'Mar', y: -72 },
-              { x: 'Apr', y: 18 },
-              { x: 'May', y: 64 },
-              { x: 'Jun', y: -16 },
+              { x: 'Jan', y: 44 }, { x: 'Feb', y: -20 }, { x: 'Mar', y: -72 },
+              { x: 'Apr', y: 18 }, { x: 'May', y: 64 },  { x: 'Jun', y: -16 },
             ],
             dailyBars: [
-              { label: 'Mon', value: 420 },
-              { label: 'Tue', value: -120 },
-              { label: 'Wed', value: 320 },
-              { label: 'Thu', value: 180 },
-              { label: 'Fri', value: -240 },
-              { label: 'Sat', value: 90 },
-              { label: 'Sun', value: 210 },
+              { label: 'Mon', value: 420 }, { label: 'Tue', value: -120 }, { label: 'Wed', value: 320 },
+              { label: 'Thu', value: 180 }, { label: 'Fri', value: -240 }, { label: 'Sat', value: 90 }, { label: 'Sun', value: 210 },
             ],
             groupedBars: [
-              {
-                name: 'Current',
-                color: '#22c55e',
-                bars: [
-                  { label: 'Jan', value: 12 },
-                  { label: 'Feb', value: 18 },
-                  { label: 'Mar', value: 14 },
-                  { label: 'Apr', value: 8 },
-                  { label: 'May', value: 16 },
-                  { label: 'Jun', value: 17 },
-                ],
-              },
-              {
-                name: 'Previous',
-                color: '#ef4444',
-                bars: [
-                  { label: 'Jan', value: 9 },
-                  { label: 'Feb', value: 16 },
-                  { label: 'Mar', value: 11 },
-                  { label: 'Apr', value: 15 },
-                  { label: 'May', value: 12 },
-                  { label: 'Jun', value: 13 },
-                ],
-              },
+              { name: 'Current', color: '#22c55e', bars: [{ label: 'Jan', value: 12 }, { label: 'Feb', value: 18 }, { label: 'Mar', value: 14 }, { label: 'Apr', value: 8 }, { label: 'May', value: 16 }, { label: 'Jun', value: 17 }] },
+              { name: 'Previous', color: '#ef4444', bars: [{ label: 'Jan', value: 9 }, { label: 'Feb', value: 16 }, { label: 'Mar', value: 11 }, { label: 'Apr', value: 15 }, { label: 'May', value: 12 }, { label: 'Jun', value: 13 }] },
             ],
             stackedVerticalBars: [
-              {
-                name: 'Organic',
-                color: '#22c55e',
-                bars: [
-                  { label: 'Jan', value: 14 },
-                  { label: 'Feb', value: 18 },
-                  { label: 'Mar', value: 11 },
-                  { label: 'Apr', value: 17 },
-                  { label: 'May', value: 10 },
-                  { label: 'Jun', value: 16 },
-                  { label: 'Jul', value: 9 },
-                  { label: 'Aug', value: 19 },
-                  { label: 'Sep', value: 13 },
-                  { label: 'Oct', value: 12 },
-                  { label: 'Nov', value: 16 },
-                  { label: 'Dec', value: 5 },
-                ],
-              },
-              {
-                name: 'Paid',
-                color: '#facc15',
-                bars: [
-                  { label: 'Jan', value: 5 },
-                  { label: 'Feb', value: 8 },
-                  { label: 'Mar', value: 4 },
-                  { label: 'Apr', value: 7 },
-                  { label: 'May', value: 5 },
-                  { label: 'Jun', value: 6 },
-                  { label: 'Jul', value: 4 },
-                  { label: 'Aug', value: 5 },
-                  { label: 'Sep', value: 7 },
-                  { label: 'Oct', value: 5 },
-                  { label: 'Nov', value: 8 },
-                  { label: 'Dec', value: 3 },
-                ],
-              },
-              {
-                name: 'Referral',
-                gradient: {
-                  from: '#f87171',
-                  to: '#ef4444',
-                },
-                bars: [
-                  { label: 'Jan', value: 8 },
-                  { label: 'Feb', value: 17 },
-                  { label: 'Mar', value: 9 },
-                  { label: 'Apr', value: 14 },
-                  { label: 'May', value: 9 },
-                  { label: 'Jun', value: 15 },
-                  { label: 'Jul', value: 8 },
-                  { label: 'Aug', value: 20 },
-                  { label: 'Sep', value: 11 },
-                  { label: 'Oct', value: 10 },
-                  { label: 'Nov', value: 17 },
-                  { label: 'Dec', value: 6 },
-                ],
-              },
+              { name: 'Organic', color: '#22c55e', bars: [{ label: 'Jan', value: 14 }, { label: 'Feb', value: 18 }, { label: 'Mar', value: 11 }, { label: 'Apr', value: 17 }, { label: 'May', value: 10 }, { label: 'Jun', value: 16 }, { label: 'Jul', value: 9 }, { label: 'Aug', value: 19 }, { label: 'Sep', value: 13 }, { label: 'Oct', value: 12 }, { label: 'Nov', value: 16 }, { label: 'Dec', value: 5 }] },
+              { name: 'Paid', color: '#facc15', bars: [{ label: 'Jan', value: 5 }, { label: 'Feb', value: 8 }, { label: 'Mar', value: 4 }, { label: 'Apr', value: 7 }, { label: 'May', value: 5 }, { label: 'Jun', value: 6 }, { label: 'Jul', value: 4 }, { label: 'Aug', value: 5 }, { label: 'Sep', value: 7 }, { label: 'Oct', value: 5 }, { label: 'Nov', value: 8 }, { label: 'Dec', value: 3 }] },
+              { name: 'Referral', gradient: { from: '#f87171', to: '#ef4444' }, bars: [{ label: 'Jan', value: 8 }, { label: 'Feb', value: 17 }, { label: 'Mar', value: 9 }, { label: 'Apr', value: 14 }, { label: 'May', value: 9 }, { label: 'Jun', value: 15 }, { label: 'Jul', value: 8 }, { label: 'Aug', value: 20 }, { label: 'Sep', value: 11 }, { label: 'Oct', value: 10 }, { label: 'Nov', value: 17 }, { label: 'Dec', value: 6 }] },
             ],
             stackedHorizontalBars: [
-              {
-                name: 'Organic',
-                color: '#22c55e',
-                bars: [
-                  { label: 'Jan', value: 24 },
-                  { label: 'Feb', value: 31 },
-                  { label: 'Apr', value: 27 },
-                  { label: 'Jun', value: 29 },
-                  { label: 'Jul', value: 11 },
-                  { label: 'Sep', value: 18 },
-                  { label: 'Oct', value: 16 },
-                  { label: 'Dec', value: 7 },
-                ],
-              },
-              {
-                name: 'Paid',
-                color: '#facc15',
-                bars: [
-                  { label: 'Jan', value: 8 },
-                  { label: 'Feb', value: 12 },
-                  { label: 'Apr', value: 10 },
-                  { label: 'Jun', value: 14 },
-                  { label: 'Jul', value: 6 },
-                  { label: 'Sep', value: 8 },
-                  { label: 'Oct', value: 9 },
-                  { label: 'Dec', value: 5 },
-                ],
-              },
-              {
-                name: 'Referral',
-                gradient: {
-                  from: '#f87171',
-                  to: '#ef4444',
-                },
-                bars: [
-                  { label: 'Jan', value: 13 },
-                  { label: 'Feb', value: 28 },
-                  { label: 'Apr', value: 22 },
-                  { label: 'Jun', value: 30 },
-                  { label: 'Jul', value: 14 },
-                  { label: 'Sep', value: 20 },
-                  { label: 'Oct', value: 17 },
-                  { label: 'Dec', value: 9 },
-                ],
-              },
+              { name: 'Organic', color: '#22c55e', bars: [{ label: 'Jan', value: 24 }, { label: 'Feb', value: 31 }, { label: 'Apr', value: 27 }, { label: 'Jun', value: 29 }, { label: 'Jul', value: 11 }, { label: 'Sep', value: 18 }, { label: 'Oct', value: 16 }, { label: 'Dec', value: 7 }] },
+              { name: 'Paid', color: '#facc15', bars: [{ label: 'Jan', value: 8 }, { label: 'Feb', value: 12 }, { label: 'Apr', value: 10 }, { label: 'Jun', value: 14 }, { label: 'Jul', value: 6 }, { label: 'Sep', value: 8 }, { label: 'Oct', value: 9 }, { label: 'Dec', value: 5 }] },
+              { name: 'Referral', gradient: { from: '#f87171', to: '#ef4444' }, bars: [{ label: 'Jan', value: 13 }, { label: 'Feb', value: 28 }, { label: 'Apr', value: 22 }, { label: 'Jun', value: 30 }, { label: 'Jul', value: 14 }, { label: 'Sep', value: 20 }, { label: 'Oct', value: 17 }, { label: 'Dec', value: 9 }] },
             ],
             donutSegments: [
-              { label: 'Tech', value: 12 },
-              { label: 'Healthcare', value: 7 },
-              { label: 'Energy', value: 5 },
-              { label: 'Industrials', value: 4 },
-              { label: 'Consumer', value: 6 },
+              { label: 'Tech', value: 12 }, { label: 'Healthcare', value: 7 }, { label: 'Energy', value: 5 },
+              { label: 'Industrials', value: 4 }, { label: 'Consumer', value: 6 },
             ],
             radarSeries: [
-              {
-                name: 'Desktop',
-                color: '#2458ff',
-                fillOpacity: 0.12,
-                points: [
-                  { x: 'January', y: 190 },
-                  { x: 'February', y: 332 },
-                  { x: 'March', y: 278 },
-                  { x: 'April', y: 273 },
-                  { x: 'May', y: 214 },
-                  { x: 'June', y: 322 },
-                  { x: 'July', y: 260 },
-                  { x: 'August', y: 346 },
-                  { x: 'September', y: 181 },
-                  { x: 'October', y: 292 },
-                  { x: 'November', y: 176 },
-                  { x: 'December', y: 286 },
-                ],
-              },
-              {
-                name: 'Mobile',
-                color: '#a855f7',
-                fillOpacity: 0.16,
-                points: [
-                  { x: 'January', y: 126 },
-                  { x: 'February', y: 208 },
-                  { x: 'March', y: 171 },
-                  { x: 'April', y: 203 },
-                  { x: 'May', y: 158 },
-                  { x: 'June', y: 142 },
-                  { x: 'July', y: 198 },
-                  { x: 'August', y: 166 },
-                  { x: 'September', y: 201 },
-                  { x: 'October', y: 136 },
-                  { x: 'November', y: 142 },
-                  { x: 'December', y: 214 },
-                ],
-              },
+              { name: 'Desktop', color: '#2458ff', fillOpacity: 0.12, points: [{ x: 'January', y: 190 }, { x: 'February', y: 332 }, { x: 'March', y: 278 }, { x: 'April', y: 273 }, { x: 'May', y: 214 }, { x: 'June', y: 322 }, { x: 'July', y: 260 }, { x: 'August', y: 346 }, { x: 'September', y: 181 }, { x: 'October', y: 292 }, { x: 'November', y: 176 }, { x: 'December', y: 286 }] },
+              { name: 'Mobile', color: '#a855f7', fillOpacity: 0.16, points: [{ x: 'January', y: 126 }, { x: 'February', y: 208 }, { x: 'March', y: 171 }, { x: 'April', y: 203 }, { x: 'May', y: 158 }, { x: 'June', y: 142 }, { x: 'July', y: 198 }, { x: 'August', y: 166 }, { x: 'September', y: 201 }, { x: 'October', y: 136 }, { x: 'November', y: 142 }, { x: 'December', y: 214 }] },
             ],
             radialRings: [
-              { label: 'Tech', value: 88, color: '#ec4899' },
-              { label: 'Healthcare', value: 76, color: '#8b5cf6' },
-              { label: 'Energy', value: 63, color: '#f59e0b' },
-              { label: 'Industrials', value: 48, color: '#10b981' },
+              { label: 'Tech', value: 88, color: '#ec4899' }, { label: 'Healthcare', value: 76, color: '#8b5cf6' },
+              { label: 'Energy', value: 63, color: '#f59e0b' }, { label: 'Industrials', value: 48, color: '#10b981' },
               { label: 'Consumer', value: 72, color: '#3b82f6' },
             ],
+
             snippets: {
               lineBasic: `<script setup>
 const points = [
@@ -526,12 +785,9 @@ const points = [
 </template>`,
               lineDotted: `<script setup>
 const points = [
-  { x: 'Mar 1', y: 22 },
-  { x: 'Mar 2', y: 38 },
-  { x: 'Mar 3', y: 31 },
-  { x: 'Mar 4', y: 54 },
-  { x: 'Mar 5', y: 49 },
-  { x: 'Mar 6', y: 68 },
+  { x: 'Mar 1', y: 22 }, { x: 'Mar 2', y: 38 },
+  { x: 'Mar 3', y: 31 }, { x: 'Mar 4', y: 54 },
+  { x: 'Mar 5', y: 49 }, { x: 'Mar 6', y: 68 },
 ]
 <\/script>
 
@@ -546,12 +802,9 @@ const points = [
 </template>`,
               lineStraight: `<script setup>
 const points = [
-  { x: '06:00', y: 120 },
-  { x: '09:00', y: 80 },
-  { x: '12:00', y: 144 },
-  { x: '15:00', y: 96 },
-  { x: '18:00', y: 172 },
-  { x: '21:00', y: 132 },
+  { x: '06:00', y: 120 }, { x: '09:00', y: 80 },
+  { x: '12:00', y: 144 }, { x: '15:00', y: 96 },
+  { x: '18:00', y: 172 }, { x: '21:00', y: 132 },
 ]
 <\/script>
 
@@ -567,38 +820,18 @@ const points = [
 </template>`,
               lineSeries: `<script setup>
 const series = [
-  {
-    name: 'Momentum',
-    points: [
-      { x: 'Mon', y: 40 },
-      { x: 'Tue', y: 72 },
-      { x: 'Wed', y: 52 },
-      { x: 'Thu', y: 90 },
-      { x: 'Fri', y: 130 },
-    ],
-  },
-  {
-    name: 'Mean Reversion',
-    color: '#38bdf8',
-    points: [
-      { x: 'Mon', y: 18 },
-      { x: 'Tue', y: 30 },
-      { x: 'Wed', y: 84 },
-      { x: 'Thu', y: 44 },
-      { x: 'Fri', y: 65 },
-    ],
-  },
-  {
-    name: 'Swing',
-    color: '#f59e0b',
-    points: [
-      { x: 'Mon', y: -12 },
-      { x: 'Tue', y: 15 },
-      { x: 'Wed', y: 26 },
-      { x: 'Thu', y: 55 },
-      { x: 'Fri', y: 102 },
-    ],
-  },
+  { name: 'Momentum', points: [
+      { x: 'Mon', y: 40 }, { x: 'Tue', y: 72 },
+      { x: 'Wed', y: 52 }, { x: 'Thu', y: 90 }, { x: 'Fri', y: 130 },
+  ] },
+  { name: 'Mean Reversion', color: '#38bdf8', points: [
+      { x: 'Mon', y: 18 }, { x: 'Tue', y: 30 },
+      { x: 'Wed', y: 84 }, { x: 'Thu', y: 44 }, { x: 'Fri', y: 65 },
+  ] },
+  { name: 'Swing', color: '#f59e0b', points: [
+      { x: 'Mon', y: -12 }, { x: 'Tue', y: 15 },
+      { x: 'Wed', y: 26 },  { x: 'Thu', y: 55 }, { x: 'Fri', y: 102 },
+  ] },
 ]
 <\/script>
 
@@ -607,37 +840,19 @@ const series = [
 </template>`,
               multiAlias: `<script setup>
 const series = [
-  {
-    name: 'Actual',
-    points: [
-      { x: 'Q1', y: 32 },
-      { x: 'Q2', y: 48 },
-      { x: 'Q3', y: 44 },
-      { x: 'Q4', y: 66 },
-    ],
-  },
-  {
-    name: 'Forecast',
-    dotted: true,
-    points: [
-      { x: 'Q1', y: 24 },
-      { x: 'Q2', y: 36 },
-      { x: 'Q3', y: 58 },
-      { x: 'Q4', y: 54 },
-    ],
-  },
-  {
-    name: 'Stretch',
-    dotted: true,
-    points: [
-      { x: 'Q1', y: 18 },
-      { x: 'Q2', y: 28 },
-      { x: 'Q3', y: 36 },
-      { x: 'Q4', y: 49 },
-    ],
-  },
+  { name: 'Actual', points: [
+      { x: 'Q1', y: 32 }, { x: 'Q2', y: 48 },
+      { x: 'Q3', y: 44 }, { x: 'Q4', y: 66 },
+  ] },
+  { name: 'Forecast', dotted: true, points: [
+      { x: 'Q1', y: 24 }, { x: 'Q2', y: 36 },
+      { x: 'Q3', y: 58 }, { x: 'Q4', y: 54 },
+  ] },
+  { name: 'Stretch', dotted: true, points: [
+      { x: 'Q1', y: 18 }, { x: 'Q2', y: 28 },
+      { x: 'Q3', y: 36 }, { x: 'Q4', y: 49 },
+  ] },
 ]
-
 const colors = ['#0ea5e9', '#f97316', '#22c55e']
 <\/script>
 
@@ -651,12 +866,9 @@ const colors = ['#0ea5e9', '#f97316', '#22c55e']
 </template>`,
               rainbowBasic: `<script setup>
 const points = [
-  { x: 'Week 1', y: -420 },
-  { x: 'Week 2', y: -140 },
-  { x: 'Week 3', y: 80 },
-  { x: 'Week 4', y: 250 },
-  { x: 'Week 5', y: -40 },
-  { x: 'Week 6', y: 390 },
+  { x: 'Week 1', y: -420 }, { x: 'Week 2', y: -140 },
+  { x: 'Week 3', y: 80 },   { x: 'Week 4', y: 250 },
+  { x: 'Week 5', y: -40 },  { x: 'Week 6', y: 390 },
 ]
 <\/script>
 
@@ -665,12 +877,9 @@ const points = [
 </template>`,
               rainbowCustom: `<script setup>
 const points = [
-  { x: 'Jan', y: 44 },
-  { x: 'Feb', y: -20 },
-  { x: 'Mar', y: -72 },
-  { x: 'Apr', y: 18 },
-  { x: 'May', y: 64 },
-  { x: 'Jun', y: -16 },
+  { x: 'Jan', y: 44 },  { x: 'Feb', y: -20 },
+  { x: 'Mar', y: -72 }, { x: 'Apr', y: 18 },
+  { x: 'May', y: 64 },  { x: 'Jun', y: -16 },
 ]
 <\/script>
 
@@ -687,12 +896,9 @@ const points = [
 </template>`,
               barBasic: `<script setup>
 const bars = [
-  { label: 'Mon', value: 420 },
-  { label: 'Tue', value: -120 },
-  { label: 'Wed', value: 320 },
-  { label: 'Thu', value: 180 },
-  { label: 'Fri', value: -240 },
-  { label: 'Sat', value: 90 },
+  { label: 'Mon', value: 420 },  { label: 'Tue', value: -120 },
+  { label: 'Wed', value: 320 },  { label: 'Thu', value: 180 },
+  { label: 'Fri', value: -240 }, { label: 'Sat', value: 90 },
   { label: 'Sun', value: 210 },
 ]
 <\/script>
@@ -702,30 +908,14 @@ const bars = [
 </template>`,
               barGrouped: `<script setup>
 const series = [
-  {
-    name: 'Current',
-    color: '#22c55e',
-    bars: [
-      { label: 'Jan', value: 12 },
-      { label: 'Feb', value: 18 },
-      { label: 'Mar', value: 14 },
-      { label: 'Apr', value: 8 },
-      { label: 'May', value: 16 },
-      { label: 'Jun', value: 17 },
-    ],
-  },
-  {
-    name: 'Previous',
-    color: '#ef4444',
-    bars: [
-      { label: 'Jan', value: 9 },
-      { label: 'Feb', value: 16 },
-      { label: 'Mar', value: 11 },
-      { label: 'Apr', value: 15 },
-      { label: 'May', value: 12 },
-      { label: 'Jun', value: 13 },
-    ],
-  },
+  { name: 'Current', color: '#22c55e', bars: [
+      { label: 'Jan', value: 12 }, { label: 'Feb', value: 18 },
+      { label: 'Mar', value: 14 }, { label: 'Apr', value: 8 },
+  ] },
+  { name: 'Previous', color: '#ef4444', bars: [
+      { label: 'Jan', value: 9 },  { label: 'Feb', value: 16 },
+      { label: 'Mar', value: 11 }, { label: 'Apr', value: 15 },
+  ] },
 ]
 <\/script>
 
@@ -734,85 +924,38 @@ const series = [
 </template>`,
               barStackedVertical: `<script setup>
 const series = [
-  {
-    name: 'Organic',
-    color: '#22c55e',
-    bars: [
-      { label: 'Jan', value: 14 },
-      { label: 'Feb', value: 18 },
-      { label: 'Mar', value: 11 },
-      { label: 'Apr', value: 17 },
-    ],
-  },
-  {
-    name: 'Paid',
-    color: '#facc15',
-    bars: [
-      { label: 'Jan', value: 5 },
-      { label: 'Feb', value: 8 },
-      { label: 'Mar', value: 4 },
-      { label: 'Apr', value: 7 },
-    ],
-  },
-  {
-    name: 'Referral',
-    gradient: {
-      from: '#f87171',
-      to: '#ef4444',
-    },
-    bars: [
-      { label: 'Jan', value: 8 },
-      { label: 'Feb', value: 17 },
-      { label: 'Mar', value: 9 },
-      { label: 'Apr', value: 14 },
-    ],
-  },
+  { name: 'Organic', color: '#22c55e', bars: [
+      { label: 'Jan', value: 14 }, { label: 'Feb', value: 18 },
+      { label: 'Mar', value: 11 }, { label: 'Apr', value: 17 },
+  ] },
+  { name: 'Paid', color: '#facc15', bars: [
+      { label: 'Jan', value: 5 }, { label: 'Feb', value: 8 },
+      { label: 'Mar', value: 4 }, { label: 'Apr', value: 7 },
+  ] },
+  { name: 'Referral', gradient: { from: '#f87171', to: '#ef4444' }, bars: [
+      { label: 'Jan', value: 8 },  { label: 'Feb', value: 17 },
+      { label: 'Mar', value: 9 },  { label: 'Apr', value: 14 },
+  ] },
 ]
 <\/script>
 
 <template>
-  <BarChart
-    :series="series"
-    theme="dark"
-    value-mode="number"
-    stacked
-  />
+  <BarChart :series="series" theme="dark" value-mode="number" stacked />
 </template>`,
               barStackedHorizontal: `<script setup>
 const series = [
-  {
-    name: 'Organic',
-    color: '#22c55e',
-    bars: [
-      { label: 'Jan', value: 24 },
-      { label: 'Feb', value: 31 },
-      { label: 'Apr', value: 27 },
-      { label: 'Jun', value: 29 },
-    ],
-  },
-  {
-    name: 'Paid',
-    color: '#facc15',
-    bars: [
-      { label: 'Jan', value: 8 },
-      { label: 'Feb', value: 12 },
-      { label: 'Apr', value: 10 },
-      { label: 'Jun', value: 14 },
-    ],
-  },
-  {
-    name: 'Referral',
-    gradient: {
-      from: '#f87171',
-      to: '#ef4444',
-    },
-    bars: [
-      { label: 'Jan', value: 13 },
-      { label: 'Feb', value: 28 },
-      { label: 'Apr', value: 22 },
-      { label: 'Jun', value: 30 },
-    ],
-  },
+  { name: 'Organic', color: '#22c55e', bars: [
+      { label: 'Jan', value: 24 }, { label: 'Feb', value: 31 },
+      { label: 'Apr', value: 27 }, { label: 'Jun', value: 29 },
+  ] },
+  { name: 'Paid', color: '#facc15', bars: [
+      { label: 'Jan', value: 8 },  { label: 'Feb', value: 12 },
+      { label: 'Apr', value: 10 }, { label: 'Jun', value: 14 },
+  ] },
+  { name: 'Referral', gradient: { from: '#f87171', to: '#ef4444' }, bars: [
+      { label: 'Jan', value: 13 }, { label: 'Feb', value: 28 },
+      { label: 'Apr', value: 22 }, { label: 'Jun', value: 30 },
+  ] },
 ]
 <\/script>
 
@@ -827,26 +970,14 @@ const series = [
 </template>`,
               radarBasic: `<script setup>
 const series = [
-  {
-    name: 'Desktop',
-    color: '#2458ff',
-    points: [
-      { x: 'January', y: 190 },
-      { x: 'February', y: 332 },
-      { x: 'March', y: 278 },
-      { x: 'April', y: 273 },
-    ],
-  },
-  {
-    name: 'Mobile',
-    color: '#a855f7',
-    points: [
-      { x: 'January', y: 126 },
-      { x: 'February', y: 208 },
-      { x: 'March', y: 171 },
-      { x: 'April', y: 203 },
-    ],
-  },
+  { name: 'Desktop', color: '#2458ff', points: [
+      { x: 'January', y: 190 }, { x: 'February', y: 332 },
+      { x: 'March', y: 278 },   { x: 'April', y: 273 },
+  ] },
+  { name: 'Mobile', color: '#a855f7', points: [
+      { x: 'January', y: 126 }, { x: 'February', y: 208 },
+      { x: 'March', y: 171 },   { x: 'April', y: 203 },
+  ] },
 ]
 <\/script>
 
@@ -868,11 +999,11 @@ const segments = [
 </template>`,
               radialBasic: `<script setup>
 const rings = [
-  { label: 'Tech', value: 88, color: '#ec4899' },
-  { label: 'Healthcare', value: 76, color: '#8b5cf6' },
-  { label: 'Energy', value: 63, color: '#f59e0b' },
-  { label: 'Industrials', value: 48, color: '#10b981' },
-  { label: 'Consumer', value: 72, color: '#3b82f6' },
+  { label: 'Tech',         value: 88, color: '#ec4899' },
+  { label: 'Healthcare',   value: 76, color: '#8b5cf6' },
+  { label: 'Energy',       value: 63, color: '#f59e0b' },
+  { label: 'Industrials',  value: 48, color: '#10b981' },
+  { label: 'Consumer',     value: 72, color: '#3b82f6' },
 ]
 <\/script>
 
@@ -882,917 +1013,805 @@ const rings = [
             },
           }
         },
+
+        mounted() {
+          window.addEventListener('scroll', () => {
+            this.isScrolled = window.scrollY > 20
+          })
+          this._initScrollReveal()
+        },
+
         methods: {
-          getCardView(cardId) {
-            return this.cardViews[cardId] ?? 'preview'
+          _initScrollReveal() {
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view') })
+            }, { threshold: 0.1 })
+            document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el))
           },
-          setCardView(cardId, view) {
-            this.cardViews[cardId] = view
+          navigate(section) {
+            this.currentSection = section
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            this.$nextTick(() => this._initScrollReveal())
           },
-          getCopyTooltip(snippetKey) {
-            return this.copiedSnippet === snippetKey ? 'Code copied to clipboard' : 'Copy code to clipboard'
-          },
-          async copySnippet(snippetKey) {
-            const code = this.snippets[snippetKey]
-
-            if (!code) {
-              return
-            }
-
+          getCardView(id) { return this.cardViews[id] ?? 'preview' },
+          setCardView(id, view) { this.cardViews[id] = view },
+          async copySnippet(key) {
+            const code = this.snippets[key]
+            if (!code) return
             try {
-              if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(code)
-              } else {
-                const textarea = document.createElement('textarea')
-                textarea.value = code
-                textarea.setAttribute('readonly', '')
-                textarea.style.position = 'fixed'
-                textarea.style.opacity = '0'
-                textarea.style.pointerEvents = 'none'
-                document.body.appendChild(textarea)
-                textarea.select()
-                document.execCommand('copy')
-                document.body.removeChild(textarea)
-              }
-
-              this.copiedSnippet = snippetKey
-
-              if (this.copyResetHandle) {
-                window.clearTimeout(this.copyResetHandle)
-              }
-
-              this.copyResetHandle = window.setTimeout(() => {
-                this.copiedSnippet = null
-                this.copyResetHandle = null
-              }, 1600)
-            } catch (error) {
-              console.error('Unable to copy chart snippet.', error)
-            }
+              await navigator.clipboard.writeText(code)
+              this.copiedSnippet = key
+              if (this.copyResetHandle) clearTimeout(this.copyResetHandle)
+              this.copyResetHandle = setTimeout(() => { this.copiedSnippet = null }, 1600)
+            } catch (e) { console.error('Copy failed', e) }
+          },
+          async copyInstall() {
+            try {
+              await navigator.clipboard.writeText('npm install vue-dark-charts')
+              this.installCopied = true
+              setTimeout(() => { this.installCopied = false }, 1600)
+            } catch (e) {}
           },
         },
+
         template: `
-          <main class="vdc-demo" :data-vdc-theme="theme">
-            <header class="vdc-demo-header">
-              <div>
-                <h1>vue-dark-charts</h1>
-                <p>
-                  Lightweight Vue 3 SVG charts grouped by shape and built to demo cleanly on GitHub
-                  Pages.
-                </p>
+          <div class="site-shell" :data-vdc-theme="theme">
+
+            <!-- NAV -->
+            <nav class="nav" :class="{ scrolled: isScrolled }">
+              <div class="container">
+                <div class="nav__inner">
+                  <a class="nav__logo" href="#" @click.prevent="navigate('home')">
+                    <span class="nav__logo-icon">
+                      <img src="./icon.svg" alt="vue-dark-charts logo" />
+                    </span>
+                    <span class="nav__logo-text">vue-dark-<span>charts</span></span>
+                  </a>
+                  <div class="nav__tabs">
+                    <button class="nav__tab" :class="{ active: currentSection === 'home' }" @click="navigate('home')">Home</button>
+                    <button class="nav__tab" :class="{ active: currentSection === 'examples' }" @click="navigate('examples')">Examples</button>
+                    <button class="nav__tab" :class="{ active: currentSection === 'docs' }" @click="navigate('docs')">Docs</button>
+                  </div>
+                  <div class="nav__actions">
+                    <a class="star-btn" href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">
+                      <svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      Star on GitHub
+                    </a>
+                    <button class="theme-btn" @click="theme = theme === 'dark' ? 'light' : 'dark'" :title="'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' theme'">
+                      <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <button class="vdc-demo-toggle" @click="theme = theme === 'dark' ? 'light' : 'dark'">
-                Theme: {{ theme }}
-              </button>
-            </header>
+            </nav>
 
-            <div class="vdc-demo-sections">
-              <section class="vdc-demo-section">
-                <div class="vdc-demo-section-heading">
-                  <span class="vdc-demo-kicker">Line Charts</span>
-                  <h2>Trend, comparison, and zero-crossing views</h2>
-                  <p>
-                    Three line-based variants for single series, multi-series comparisons, and
-                    above/below-zero storytelling.
+            <div class="page">
+              <!-- HOME SECTION -->
+              <div class="page-section" :class="{ active: currentSection === 'home' }">
+
+                <!-- Hero -->
+                <section class="hero">
+                  <div class="hero__bg"></div>
+                  <div class="hero__orb hero__orb--blue"></div>
+                  <div class="hero__orb hero__orb--cyan"></div>
+                  <div class="hero__orb hero__orb--green"></div>
+                  <div class="container">
+                    <div class="hero__content">
+                      <div class="hero__eyebrow">
+                        <span class="hero__dot"></span>
+                        Vue 3 &mdash; Zero dependencies &mdash; Pure SVG
+                      </div>
+                      <h1 class="hero__heading">
+                        Beautiful charts<br><span class="grad">for Vue 3</span>
+                      </h1>
+                      <p class="hero__sub">
+                        Lightweight SVG components with zero dependencies. Dark-first, fully themeable, responsive by default.
+                      </p>
+                      <div class="hero__actions">
+                        <button class="btn btn--lg btn-primary" @click="navigate('examples')">View Examples</button>
+                        <a class="btn btn--lg btn-ghost" href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">GitHub ↗</a>
+                      </div>
+                      <div class="hero__charts">
+                        <div class="hero__chart-box hero__chart-box--line">
+                          <div class="hero__chart-meta">
+                            <span class="hero__chart-label">Market Pulse</span>
+                            <div class="hero__chart-value">+$68k</div>
+                            <div class="hero__chart-note">Seven-day climb with a clean breakout into the close.</div>
+                          </div>
+                          <div class="hero__chart-canvas">
+                            <LineChart :points="linePoints" :theme="theme" />
+                          </div>
+                        </div>
+                        <div class="hero__chart-box hero__chart-box--bar">
+                          <div class="hero__chart-meta">
+                            <span class="hero__chart-label">Daily Flow</span>
+                            <div class="hero__chart-value">7 bars</div>
+                            <div class="hero__chart-note">Profit and loss blocks with quick directional contrast.</div>
+                          </div>
+                          <div class="hero__chart-canvas">
+                            <BarChart :bars="dailyBars" :theme="theme" />
+                          </div>
+                        </div>
+                        <div class="hero__chart-box hero__chart-box--donut">
+                          <div class="hero__chart-meta">
+                            <span class="hero__chart-label">Allocation</span>
+                            <div class="hero__chart-value">5 sectors</div>
+                            <div class="hero__chart-note">A wider card gives the donut breakdown room to breathe.</div>
+                          </div>
+                          <div class="hero__chart-canvas">
+                            <DonutChart :segments="donutSegments" :theme="theme" />
+                          </div>
+                        </div>
+                        <div class="hero__chart-box hero__chart-box--radial">
+                          <div class="hero__chart-meta">
+                            <span class="hero__chart-label">Progress Rings</span>
+                            <div class="hero__chart-value">88%</div>
+                            <div class="hero__chart-note">A tall anchor card makes the hero feel more like a live dashboard.</div>
+                          </div>
+                          <div class="hero__chart-canvas">
+                            <RadialChart :rings="radialRings" :theme="theme" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Features -->
+                <section class="section section--alt">
+                  <div class="container">
+                    <div class="section__header animate-on-scroll">
+                      <span class="section__eyebrow">Why vue-dark-charts</span>
+                      <h2 class="section__heading">Everything you need, nothing you don't</h2>
+                      <p class="section__desc">8 chart types. One peer dependency. Ships in under 40 KB.</p>
+                    </div>
+                    <div class="features-grid stagger">
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--blue">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div class="feature-card__title">Zero dependencies</div>
+                        <div class="feature-card__body">Only Vue 3 as a peer dependency. No D3, no Chart.js, no bloat.</div>
+                      </div>
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--cyan">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <div class="feature-card__title">Pure SVG</div>
+                        <div class="feature-card__body">Every chart is rendered in SVG — crisp at any resolution, animatable with CSS.</div>
+                      </div>
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--green">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+                        </div>
+                        <div class="feature-card__title">Dark &amp; Light themes</div>
+                        <div class="feature-card__body">Built-in dark, light, and auto (system) themes via CSS variables.</div>
+                      </div>
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--blue">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        </div>
+                        <div class="feature-card__title">TypeScript</div>
+                        <div class="feature-card__body">Full TypeScript support with exported types for all components and data structures.</div>
+                      </div>
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--cyan">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                        </div>
+                        <div class="feature-card__title">Responsive</div>
+                        <div class="feature-card__body">Automatically resizes via ResizeObserver. No manual width/height needed.</div>
+                      </div>
+                      <div class="feature-card animate-on-scroll">
+                        <div class="feature-card__icon feature-card__icon--green">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </div>
+                        <div class="feature-card__title">Interactive tooltips</div>
+                        <div class="feature-card__body">Hover tooltips with crosshairs, value formatting, and smooth transitions.</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Install -->
+                <section class="section">
+                  <div class="container">
+                    <div class="section__header animate-on-scroll">
+                      <span class="section__eyebrow">Get started</span>
+                      <h2 class="section__heading">Up and running in seconds</h2>
+                    </div>
+                    <div class="install-banner animate-on-scroll">
+                      <div>
+                        <div class="install-banner__label">Install</div>
+                        <div class="install-banner__cmd"><span>$</span>npm install vue-dark-charts</div>
+                      </div>
+                      <button class="copy-btn" :class="{ copied: installCopied }" @click="copyInstall">
+                        <svg v-if="!installCopied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        {{ installCopied ? 'Copied!' : 'Copy' }}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+              </div>
+
+              <!-- EXAMPLES SECTION -->
+              <div class="page-section" :class="{ active: currentSection === 'examples' }">
+                <section class="section">
+                  <div class="container">
+                    <div class="section__header">
+                      <span class="section__eyebrow">Examples</span>
+                      <h2 class="section__heading">Charts for every use case</h2>
+                      <p class="section__desc">Toggle between preview and code for each example. All charts are live &amp; interactive.</p>
+                    </div>
+
+                    <div class="cat-tabs">
+                      <button class="cat-tab" :class="{ active: activeCategory === 'line' }" @click="activeCategory = 'line'">Line Charts</button>
+                      <button class="cat-tab" :class="{ active: activeCategory === 'bar' }" @click="activeCategory = 'bar'">Bar Charts</button>
+                      <button class="cat-tab" :class="{ active: activeCategory === 'circular' }" @click="activeCategory = 'circular'">Circular</button>
+                    </div>
+
+                    <!-- LINE CHARTS -->
+                    <div v-show="activeCategory === 'line'" class="chart-grid">
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('lineBasic') === 'preview'" class="chart-card__preview">
+                          <LineChart :points="linePoints" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('lineBasic') === 'code'" class="chart-card__code"><code v-text="snippets.lineBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Line Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('lineBasic') === 'preview' }" @click="setCardView('lineBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('lineBasic') === 'code' }" @click="setCardView('lineBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'lineBasic' }" @click="copySnippet('lineBasic')">{{ copiedSnippet === 'lineBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Single-series smooth curve with hover crosshair and gradient fill.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('lineDotted') === 'preview'" class="chart-card__preview">
+                          <LineChart :points="dottedLinePoints" :theme="theme" color="#f97316" dotted value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('lineDotted') === 'code'" class="chart-card__code"><code v-text="snippets.lineDotted"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Dotted Line</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('lineDotted') === 'preview' }" @click="setCardView('lineDotted', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('lineDotted') === 'code' }" @click="setCardView('lineDotted', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'lineDotted' }" @click="copySnippet('lineDotted')">{{ copiedSnippet === 'lineDotted' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Dashed style with custom orange color and number formatting.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('lineStraight') === 'preview'" class="chart-card__preview">
+                          <LineChart :points="straightLinePoints" :theme="theme" color="#22c55e" :smooth="false" :show-zero-line="false" value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('lineStraight') === 'code'" class="chart-card__code"><code v-text="snippets.lineStraight"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Straight Line</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('lineStraight') === 'preview' }" @click="setCardView('lineStraight', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('lineStraight') === 'code' }" @click="setCardView('lineStraight', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'lineStraight' }" @click="copySnippet('lineStraight')">{{ copiedSnippet === 'lineStraight' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Non-smooth segments, no zero line, green accent.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('lineSeries') === 'preview'" class="chart-card__preview">
+                          <LineChart :series="multiSeries" :theme="theme" value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('lineSeries') === 'code'" class="chart-card__code"><code v-text="snippets.lineSeries"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Multi-Series</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('lineSeries') === 'preview' }" @click="setCardView('lineSeries', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('lineSeries') === 'code' }" @click="setCardView('lineSeries', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'lineSeries' }" @click="copySnippet('lineSeries')">{{ copiedSnippet === 'lineSeries' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Three named series rendered in a single LineChart using the series prop.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('multiAlias') === 'preview'" class="chart-card__preview">
+                          <MultiLineChart :series="dottedMultiSeries" :colors="['#0ea5e9', '#f97316', '#22c55e']" :theme="theme" value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('multiAlias') === 'code'" class="chart-card__code"><code v-text="snippets.multiAlias"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">MultiLineChart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('multiAlias') === 'preview' }" @click="setCardView('multiAlias', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('multiAlias') === 'code' }" @click="setCardView('multiAlias', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'multiAlias' }" @click="copySnippet('multiAlias')">{{ copiedSnippet === 'multiAlias' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">MultiLineChart alias with custom colors and mixed dotted/solid series.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('rainbowBasic') === 'preview'" class="chart-card__preview">
+                          <RainbowLineChart :points="rainbowPoints" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('rainbowBasic') === 'code'" class="chart-card__code"><code v-text="snippets.rainbowBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Rainbow Line</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('rainbowBasic') === 'preview' }" @click="setCardView('rainbowBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('rainbowBasic') === 'code' }" @click="setCardView('rainbowBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'rainbowBasic' }" @click="copySnippet('rainbowBasic')">{{ copiedSnippet === 'rainbowBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Above/below-zero fills — ideal for P&amp;L, returns, and anomalies.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('rainbowCustom') === 'preview'" class="chart-card__preview">
+                          <RainbowLineChart :points="rainbowCustomPoints" :theme="theme" positive-color="#06b6d4" negative-color="#fb7185" dotted :smooth="false" :show-zero-line="false" />
+                        </div>
+                        <pre v-show="getCardView('rainbowCustom') === 'code'" class="chart-card__code"><code v-text="snippets.rainbowCustom"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Rainbow Custom Colors</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('rainbowCustom') === 'preview' }" @click="setCardView('rainbowCustom', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('rainbowCustom') === 'code' }" @click="setCardView('rainbowCustom', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'rainbowCustom' }" @click="copySnippet('rainbowCustom')">{{ copiedSnippet === 'rainbowCustom' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Custom cyan/rose palette, dotted, straight segments, no zero line.</p>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- BAR CHARTS -->
+                    <div v-show="activeCategory === 'bar'" class="chart-grid">
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('barBasic') === 'preview'" class="chart-card__preview">
+                          <BarChart :bars="dailyBars" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('barBasic') === 'code'" class="chart-card__code"><code v-text="snippets.barBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Bar Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('barBasic') === 'preview' }" @click="setCardView('barBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('barBasic') === 'code' }" @click="setCardView('barBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'barBasic' }" @click="copySnippet('barBasic')">{{ copiedSnippet === 'barBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Single-series vertical bars with positive and negative values.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('barGrouped') === 'preview'" class="chart-card__preview">
+                          <BarChart :series="groupedBars" :theme="theme" value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('barGrouped') === 'code'" class="chart-card__code"><code v-text="snippets.barGrouped"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Grouped Bars</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('barGrouped') === 'preview' }" @click="setCardView('barGrouped', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('barGrouped') === 'code' }" @click="setCardView('barGrouped', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'barGrouped' }" @click="copySnippet('barGrouped')">{{ copiedSnippet === 'barGrouped' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Two series side-by-side — current vs previous period comparison.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('barStackedVertical') === 'preview'" class="chart-card__preview">
+                          <BarChart :series="stackedVerticalBars" :theme="theme" value-mode="number" stacked />
+                        </div>
+                        <pre v-show="getCardView('barStackedVertical') === 'code'" class="chart-card__code"><code v-text="snippets.barStackedVertical"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Stacked Vertical</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('barStackedVertical') === 'preview' }" @click="setCardView('barStackedVertical', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('barStackedVertical') === 'code' }" @click="setCardView('barStackedVertical', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'barStackedVertical' }" @click="copySnippet('barStackedVertical')">{{ copiedSnippet === 'barStackedVertical' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Three stacked series — one using a gradient fill.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('barStackedHorizontal') === 'preview'" class="chart-card__preview">
+                          <BarChart :series="stackedHorizontalBars" :theme="theme" value-mode="number" orientation="horizontal" stacked />
+                        </div>
+                        <pre v-show="getCardView('barStackedHorizontal') === 'code'" class="chart-card__code"><code v-text="snippets.barStackedHorizontal"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Stacked Horizontal</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('barStackedHorizontal') === 'preview' }" @click="setCardView('barStackedHorizontal', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('barStackedHorizontal') === 'code' }" @click="setCardView('barStackedHorizontal', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'barStackedHorizontal' }" @click="copySnippet('barStackedHorizontal')">{{ copiedSnippet === 'barStackedHorizontal' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Horizontal layout with stacked series and gradient fill.</p>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- CIRCULAR CHARTS -->
+                    <div v-show="activeCategory === 'circular'" class="chart-grid">
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('radarBasic') === 'preview'" class="chart-card__preview">
+                          <RadarChart :series="radarSeries" :theme="theme" value-mode="number" />
+                        </div>
+                        <pre v-show="getCardView('radarBasic') === 'code'" class="chart-card__code"><code v-text="snippets.radarBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Radar Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('radarBasic') === 'preview' }" @click="setCardView('radarBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('radarBasic') === 'code' }" @click="setCardView('radarBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'radarBasic' }" @click="copySnippet('radarBasic')">{{ copiedSnippet === 'radarBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Two-series spider/polygon chart — Desktop vs Mobile traffic by month.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('donutBasic') === 'preview'" class="chart-card__preview">
+                          <DonutChart :segments="donutSegments" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('donutBasic') === 'code'" class="chart-card__code"><code v-text="snippets.donutBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Donut Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('donutBasic') === 'preview' }" @click="setCardView('donutBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('donutBasic') === 'code' }" @click="setCardView('donutBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'donutBasic' }" @click="copySnippet('donutBasic')">{{ copiedSnippet === 'donutBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Portfolio sector breakdown. Segments are clickable.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
+                        <div v-show="getCardView('radialBasic') === 'preview'" class="chart-card__preview">
+                          <RadialChart :rings="radialRings" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('radialBasic') === 'code'" class="chart-card__code"><code v-text="snippets.radialBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Radial Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('radialBasic') === 'preview' }" @click="setCardView('radialBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('radialBasic') === 'code' }" @click="setCardView('radialBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'radialBasic' }" @click="copySnippet('radialBasic')">{{ copiedSnippet === 'radialBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">Five concentric progress rings with individual colors.</p>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- DOCS SECTION -->
+              <div class="page-section" :class="{ active: currentSection === 'docs' }">
+                <div class="container">
+                  <div class="section__header" style="padding-top: 3rem;">
+                    <span class="section__eyebrow">API Reference</span>
+                    <h2 class="section__heading">Component documentation</h2>
+                    <p class="section__desc">Props, types, and usage for all 8 chart components.</p>
+                  </div>
+                  <div class="docs-layout">
+                    <aside class="docs-sidebar">
+                      <div class="docs-sidebar__group">
+                        <div class="docs-sidebar__label">Setup</div>
+                        <a class="docs-sidebar__link" href="#doc-install">Installation</a>
+                        <a class="docs-sidebar__link" href="#doc-quickstart">Quick Start</a>
+                      </div>
+                      <div class="docs-sidebar__group">
+                        <div class="docs-sidebar__label">Line</div>
+                        <a class="docs-sidebar__link" href="#doc-linechart">LineChart</a>
+                        <a class="docs-sidebar__link" href="#doc-multilinechart">MultiLineChart</a>
+                        <a class="docs-sidebar__link" href="#doc-rainbowlinechart">RainbowLineChart</a>
+                      </div>
+                      <div class="docs-sidebar__group">
+                        <div class="docs-sidebar__label">Bar</div>
+                        <a class="docs-sidebar__link" href="#doc-barchart">BarChart</a>
+                        <a class="docs-sidebar__link" href="#doc-horizontalbarchart">HorizontalBarChart</a>
+                      </div>
+                      <div class="docs-sidebar__group">
+                        <div class="docs-sidebar__label">Circular</div>
+                        <a class="docs-sidebar__link" href="#doc-donutchart">DonutChart</a>
+                        <a class="docs-sidebar__link" href="#doc-radialchart">RadialChart</a>
+                        <a class="docs-sidebar__link" href="#doc-radarchart">RadarChart</a>
+                      </div>
+                      <div class="docs-sidebar__group">
+                        <div class="docs-sidebar__label">Reference</div>
+                        <a class="docs-sidebar__link" href="#doc-types">Types</a>
+                        <a class="docs-sidebar__link" href="#doc-theming">Theming</a>
+                        <a class="docs-sidebar__link" href="#doc-formatting">Formatting</a>
+                      </div>
+                    </aside>
+
+                    <div class="docs-content">
+
+                      <div class="docs-section" id="doc-install">
+                        <h2 class="docs-section__title">Installation</h2>
+                        <pre class="docs-code">npm install vue-dark-charts</pre>
+                        <pre class="docs-code">import { LineChart, BarChart, DonutChart } from 'vue-dark-charts'
+import 'vue-dark-charts/dist/style.css'</pre>
+                        <p class="docs-section__desc">Requires Vue 3.5 or later as a peer dependency.</p>
+                      </div>
+
+                      <div class="docs-section" id="doc-quickstart">
+                        <h2 class="docs-section__title">Quick Start</h2>
+                        <pre class="docs-code">&lt;script setup&gt;
+import { LineChart } from 'vue-dark-charts'
+import 'vue-dark-charts/dist/style.css'
+
+const points = [
+  { x: 'Mon', y: 40 }, { x: 'Tue', y: 72 },
+  { x: 'Wed', y: 52 }, { x: 'Thu', y: 90 }, { x: 'Fri', y: 130 },
+]
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;LineChart :points="points" theme="dark" /&gt;
+&lt;/template&gt;</pre>
+                      </div>
+
+                      <div class="docs-section" id="doc-linechart">
+                        <h2 class="docs-section__title">LineChart</h2>
+                        <p class="docs-section__desc">Single or multi-series line chart with smooth curves, hover crosshair, and gradient fill. Use <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">points</code> for single-series or <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">series</code> for multi-series.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>points</td><td><span class="badge badge--arr">ChartPoint[]</span></td><td>—</td><td>Data points for single-series mode</td></tr>
+                            <tr><td>series</td><td><span class="badge badge--arr">MultiLineSeries[]</span></td><td>—</td><td>Multiple named series (use instead of points)</td></tr>
+                            <tr><td>color</td><td><span class="badge badge--str">string</span></td><td>#3b82f6</td><td>Line color for single-series mode</td></tr>
+                            <tr><td>colors</td><td><span class="badge badge--arr">string[]</span></td><td>rainbow</td><td>Colors array for multi-series mode</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>valueMode</td><td><span class="badge badge--str">'currency'|'percent'|'number'</span></td><td>'number'</td><td>Tooltip value format</td></tr>
+                            <tr><td>dotted</td><td><span class="badge badge--bool">boolean</span></td><td>false</td><td>Render line as dashed</td></tr>
+                            <tr><td>showZeroLine</td><td><span class="badge badge--bool">boolean</span></td><td>true</td><td>Show horizontal zero baseline</td></tr>
+                            <tr><td>smooth</td><td><span class="badge badge--bool">boolean</span></td><td>true</td><td>Smooth bezier curves vs straight segments</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter, overrides valueMode</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-multilinechart">
+                        <h2 class="docs-section__title">MultiLineChart</h2>
+                        <p class="docs-section__desc">Alias for LineChart in multi-series mode. The <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">series</code> prop is required.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>series</td><td><span class="badge badge--arr">MultiLineSeries[]</span></td><td><span class="badge badge--req">required</span></td><td>Multiple named series</td></tr>
+                            <tr><td>colors</td><td><span class="badge badge--arr">string[]</span></td><td>rainbow</td><td>Colors per series</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>valueMode</td><td><span class="badge badge--str">'currency'|'percent'|'number'</span></td><td>'number'</td><td>Tooltip value format</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-rainbowlinechart">
+                        <h2 class="docs-section__title">RainbowLineChart</h2>
+                        <p class="docs-section__desc">Line chart that fills areas above zero in one color and below zero in another. Ideal for P&amp;L, temperature anomalies, and portfolio returns.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>points</td><td><span class="badge badge--arr">ChartPoint[]</span></td><td><span class="badge badge--req">required</span></td><td>Data points</td></tr>
+                            <tr><td>positiveColor</td><td><span class="badge badge--str">string</span></td><td>#22c55e</td><td>Fill color for values above zero</td></tr>
+                            <tr><td>negativeColor</td><td><span class="badge badge--str">string</span></td><td>#ef4444</td><td>Fill color for values below zero</td></tr>
+                            <tr><td>dotted</td><td><span class="badge badge--bool">boolean</span></td><td>false</td><td>Dashed line style</td></tr>
+                            <tr><td>showZeroLine</td><td><span class="badge badge--bool">boolean</span></td><td>true</td><td>Show zero baseline</td></tr>
+                            <tr><td>smooth</td><td><span class="badge badge--bool">boolean</span></td><td>true</td><td>Smooth bezier curves</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-barchart">
+                        <h2 class="docs-section__title">BarChart</h2>
+                        <p class="docs-section__desc">Vertical or horizontal bars. Supports single series, grouped multi-series, and stacked. Accepts gradient fills.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>bars</td><td><span class="badge badge--arr">BarDatum[]</span></td><td>—</td><td>Single-series bars</td></tr>
+                            <tr><td>series</td><td><span class="badge badge--arr">BarSeries[]</span></td><td>—</td><td>Multi-series grouped or stacked bars</td></tr>
+                            <tr><td>colors</td><td><span class="badge badge--arr">string[]</span></td><td>rainbow</td><td>Colors for multi-series</td></tr>
+                            <tr><td>orientation</td><td><span class="badge badge--str">'vertical'|'horizontal'</span></td><td>'vertical'</td><td>Bar direction</td></tr>
+                            <tr><td>stacked</td><td><span class="badge badge--bool">boolean</span></td><td>false</td><td>Stack series instead of grouping</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>valueMode</td><td><span class="badge badge--str">'currency'|'percent'|'number'</span></td><td>'number'</td><td>Tooltip value format</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-horizontalbarchart">
+                        <h2 class="docs-section__title">HorizontalBarChart</h2>
+                        <p class="docs-section__desc">Convenience alias for <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">BarChart</code> with <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">orientation="horizontal"</code> pre-set. Accepts all the same props as BarChart.</p>
+                      </div>
+
+                      <div class="docs-section" id="doc-donutchart">
+                        <h2 class="docs-section__title">DonutChart</h2>
+                        <p class="docs-section__desc">Segmented ring chart with optional center text. Segments are interactive and emit click events.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>segments</td><td><span class="badge badge--arr">DonutSegment[]</span></td><td><span class="badge badge--req">required</span></td><td>Chart segments</td></tr>
+                            <tr><td>centerText</td><td><span class="badge badge--str">string</span></td><td>—</td><td>Text displayed in the donut center hole</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                        <h3 class="docs-section__subtitle">Events</h3>
+                        <table class="options-table">
+                          <thead><tr><th>Event</th><th>Payload</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>segment-click</td><td><span class="badge badge--arr">DonutSegment</span></td><td>Emitted when a segment is clicked</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-radialchart">
+                        <h2 class="docs-section__title">RadialChart</h2>
+                        <p class="docs-section__desc">Concentric progress rings, each with its own label, value, and color. Customizable start angle and ring spacing.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>rings</td><td><span class="badge badge--arr">RadialRing[]</span></td><td><span class="badge badge--req">required</span></td><td>Ring definitions</td></tr>
+                            <tr><td>centerText</td><td><span class="badge badge--str">string</span></td><td>—</td><td>Main text in the center</td></tr>
+                            <tr><td>centerLabel</td><td><span class="badge badge--str">string</span></td><td>'progress'</td><td>Secondary label below center text</td></tr>
+                            <tr><td>startAngle</td><td><span class="badge badge--num">number</span></td><td>135</td><td>Ring start angle in degrees</td></tr>
+                            <tr><td>ringGap</td><td><span class="badge badge--num">number</span></td><td>8</td><td>Gap between rings in pixels</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                        <h3 class="docs-section__subtitle">Events</h3>
+                        <table class="options-table">
+                          <thead><tr><th>Event</th><th>Payload</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>ring-click</td><td><span class="badge badge--arr">RadialRing</span></td><td>Emitted when a ring is clicked</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-radarchart">
+                        <h2 class="docs-section__title">RadarChart</h2>
+                        <p class="docs-section__desc">Spider/polygon chart for comparing multiple dimensions. Supports single and multi-series overlays.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>points</td><td><span class="badge badge--arr">ChartPoint[]</span></td><td>—</td><td>Single-series data points</td></tr>
+                            <tr><td>series</td><td><span class="badge badge--arr">RadarSeries[]</span></td><td>—</td><td>Multi-series data</td></tr>
+                            <tr><td>color</td><td><span class="badge badge--str">string</span></td><td>#3b82f6</td><td>Color for single-series mode</td></tr>
+                            <tr><td>colors</td><td><span class="badge badge--arr">string[]</span></td><td>rainbow</td><td>Colors for multi-series</td></tr>
+                            <tr><td>valueMode</td><td><span class="badge badge--str">'currency'|'percent'|'number'</span></td><td>'number'</td><td>Tooltip value format</td></tr>
+                            <tr><td>maxValue</td><td><span class="badge badge--num">number</span></td><td>auto</td><td>Override the maximum grid value</td></tr>
+                            <tr><td>gridLevels</td><td><span class="badge badge--num">number</span></td><td>5</td><td>Number of grid rings (3–8)</td></tr>
+                            <tr><td>showDots</td><td><span class="badge badge--bool">boolean</span></td><td>false</td><td>Show data point dots on the polygon</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div class="docs-section" id="doc-types">
+                        <h2 class="docs-section__title">Types Reference</h2>
+                        <pre class="docs-code">interface ChartPoint        { x: string; y: number }
+
+interface MultiLineSeries   {
+  name: string; color?: string; dotted?: boolean; points: ChartPoint[]
+}
+
+interface BarDatum          { label: string; value: number; color?: string; gradient?: BarGradient }
+interface BarSeries         { name: string; color?: string; gradient?: BarGradient; bars: BarDatum[] }
+interface BarGradient       {
+  from?: string; to?: string;
+  stops?: Array&lt;{ offset: string; color: string }&gt;;
+  direction?: 'vertical' | 'horizontal' | 'diagonal'
+}
+
+interface DonutSegment      { label: string; value: number; color?: string }
+interface RadialRing        { label: string; value: number; max?: number; color?: string }
+interface RadarSeries       { name: string; color?: string; fillOpacity?: number; points: ChartPoint[] }</pre>
+                      </div>
+
+                      <div class="docs-section" id="doc-theming">
+                        <h2 class="docs-section__title">Theming</h2>
+                        <p class="docs-section__desc">All components accept a <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">theme</code> prop.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Value</th><th>Behavior</th></tr></thead>
+                          <tbody>
+                            <tr><td>'dark'</td><td>Forces dark theme regardless of system preference</td></tr>
+                            <tr><td>'light'</td><td>Forces light theme</td></tr>
+                            <tr><td>'auto'</td><td>Follows OS prefers-color-scheme setting</td></tr>
+                          </tbody>
+                        </table>
+                        <p class="docs-section__desc">Override CSS variables to customize further:</p>
+                        <pre class="docs-code">[data-vdc-theme='dark'] {
+  --vdc-bg:         #0a0f1e;
+  --vdc-surface:    rgba(255, 255, 255, 0.04);
+  --vdc-text:       #e2e8f0;
+  --vdc-text-muted: #94a3b8;
+  --vdc-border:     rgba(148, 163, 184, 0.15);
+  --vdc-accent:     #3b82f6;
+}</pre>
+                      </div>
+
+                      <div class="docs-section" id="doc-formatting">
+                        <h2 class="docs-section__title">Value Formatting</h2>
+                        <h3 class="docs-section__subtitle">Built-in modes via valueMode</h3>
+                        <table class="options-table">
+                          <thead><tr><th>Value</th><th>Example output</th></tr></thead>
+                          <tbody>
+                            <tr><td>'number'</td><td>1,234</td></tr>
+                            <tr><td>'currency'</td><td>$1,234</td></tr>
+                            <tr><td>'percent'</td><td>12.3%</td></tr>
+                          </tbody>
+                        </table>
+                        <h3 class="docs-section__subtitle">Custom formatter</h3>
+                        <p class="docs-section__desc">Pass a <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">format</code> function to fully control tooltip display. Takes precedence over <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">valueMode</code>.</p>
+                        <pre class="docs-code">&lt;LineChart
+  :points="points"
+  :format="(v) => v.toFixed(1) + ' BTC'"
+/&gt;</pre>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FOOTER -->
+              <footer class="footer">
+                <div class="container">
+                  <p class="footer__text">
+                    <a href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">vue-dark-charts</a>
+                    &mdash; MIT License &mdash;
+                    Built with Vue 3 &amp; pure SVG &mdash;
+                    <a href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">Star on GitHub ★</a>
                   </p>
                 </div>
-
-                <div class="vdc-demo-grid">
-                  <article class="vdc-demo-card">
-                    <h3>Line Chart</h3>
-                    <p>Single-series curve with hover crosshair and glow.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('lineBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('lineBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('lineBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('lineBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'lineBasic' }"
-                        :data-tooltip="getCopyTooltip('lineBasic')"
-                        :aria-label="getCopyTooltip('lineBasic')"
-                        @click="copySnippet('lineBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('lineBasic') === 'preview'" class="vdc-demo-frame">
-                      <LineChart :points="linePoints" :theme="theme" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineBasic"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Dotted Line</h3>
-                    <p>Custom line color with dotted stroke styling.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineDotted') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('lineDotted') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('lineDotted', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineDotted') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('lineDotted') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('lineDotted', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'lineDotted' }"
-                        :data-tooltip="getCopyTooltip('lineDotted')"
-                        :aria-label="getCopyTooltip('lineDotted')"
-                        @click="copySnippet('lineDotted')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('lineDotted') === 'preview'" class="vdc-demo-frame">
-                      <LineChart
-                        :points="dottedLinePoints"
-                        :theme="theme"
-                        color="#f97316"
-                        dotted
-                        value-mode="number"
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineDotted"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Straight Line</h3>
-                    <p>Sharp segments with the zero guide hidden.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineStraight') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('lineStraight') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('lineStraight', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineStraight') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('lineStraight') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('lineStraight', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'lineStraight' }"
-                        :data-tooltip="getCopyTooltip('lineStraight')"
-                        :aria-label="getCopyTooltip('lineStraight')"
-                        @click="copySnippet('lineStraight')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('lineStraight') === 'preview'" class="vdc-demo-frame">
-                      <LineChart
-                        :points="straightLinePoints"
-                        :theme="theme"
-                        color="#22c55e"
-                        :smooth="false"
-                        :show-zero-line="false"
-                        value-mode="number"
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineStraight"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>LineChart with Series</h3>
-                    <p>Use the main wrapper with multiple series through the same import.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineSeries') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('lineSeries') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('lineSeries', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('lineSeries') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('lineSeries') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('lineSeries', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'lineSeries' }"
-                        :data-tooltip="getCopyTooltip('lineSeries')"
-                        :aria-label="getCopyTooltip('lineSeries')"
-                        @click="copySnippet('lineSeries')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('lineSeries') === 'preview'" class="vdc-demo-frame">
-                      <LineChart :series="multiSeries" :theme="theme" value-mode="number" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.lineSeries"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Mixed Solid + Dotted</h3>
-                    <p>The legacy MultiLineChart alias can mix per-series line styles too.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('multiAlias') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('multiAlias') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('multiAlias', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('multiAlias') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('multiAlias') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('multiAlias', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'multiAlias' }"
-                        :data-tooltip="getCopyTooltip('multiAlias')"
-                        :aria-label="getCopyTooltip('multiAlias')"
-                        @click="copySnippet('multiAlias')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('multiAlias') === 'preview'" class="vdc-demo-frame">
-                      <MultiLineChart
-                        :series="dottedMultiSeries"
-                        :theme="theme"
-                        :colors="['#0ea5e9', '#f97316', '#22c55e']"
-                        value-mode="number"
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.multiAlias"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Rainbow Line Chart</h3>
-                    <p>Green above zero, red below, with automatic crossing split.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('rainbowBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('rainbowBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('rainbowBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('rainbowBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('rainbowBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('rainbowBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'rainbowBasic' }"
-                        :data-tooltip="getCopyTooltip('rainbowBasic')"
-                        :aria-label="getCopyTooltip('rainbowBasic')"
-                        @click="copySnippet('rainbowBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('rainbowBasic') === 'preview'" class="vdc-demo-frame">
-                      <RainbowLineChart :points="rainbowPoints" :theme="theme" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.rainbowBasic"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Custom Rainbow</h3>
-                    <p>Custom positive and negative colors with straight dotted segments.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('rainbowCustom') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('rainbowCustom') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('rainbowCustom', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('rainbowCustom') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('rainbowCustom') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('rainbowCustom', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'rainbowCustom' }"
-                        :data-tooltip="getCopyTooltip('rainbowCustom')"
-                        :aria-label="getCopyTooltip('rainbowCustom')"
-                        @click="copySnippet('rainbowCustom')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('rainbowCustom') === 'preview'" class="vdc-demo-frame">
-                      <RainbowLineChart
-                        :points="rainbowCustomPoints"
-                        :theme="theme"
-                        positive-color="#06b6d4"
-                        negative-color="#fb7185"
-                        dotted
-                        :smooth="false"
-                        :show-zero-line="false"
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.rainbowCustom"></code></pre>
-                  </article>
-                </div>
-              </section>
-
-              <section class="vdc-demo-section">
-                <div class="vdc-demo-section-heading">
-                  <span class="vdc-demo-kicker">Bar Charts</span>
-                  <h2>Grouped and stacked distribution views</h2>
-                  <p>
-                    Use the same BarChart entry point for single, grouped, and stacked layouts.
-                  </p>
-                </div>
-
-                <div class="vdc-demo-grid">
-                  <article class="vdc-demo-card">
-                    <h3>Bar Chart</h3>
-                    <p>Compact vertical bars with positive and negative support.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('barBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('barBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('barBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('barBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'barBasic' }"
-                        :data-tooltip="getCopyTooltip('barBasic')"
-                        :aria-label="getCopyTooltip('barBasic')"
-                        @click="copySnippet('barBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('barBasic') === 'preview'" class="vdc-demo-frame">
-                      <BarChart :bars="dailyBars" :theme="theme" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barBasic"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Grouped Bar Chart</h3>
-                    <p>Multiple bars per label, powered through the same wrapper API.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barGrouped') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('barGrouped') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('barGrouped', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barGrouped') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('barGrouped') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('barGrouped', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'barGrouped' }"
-                        :data-tooltip="getCopyTooltip('barGrouped')"
-                        :aria-label="getCopyTooltip('barGrouped')"
-                        @click="copySnippet('barGrouped')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('barGrouped') === 'preview'" class="vdc-demo-frame">
-                      <BarChart :series="groupedBars" :theme="theme" value-mode="number" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barGrouped"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Stacked Vertical</h3>
-                    <p>Segment totals with stacked bars, including per-series gradients.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barStackedVertical') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('barStackedVertical') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('barStackedVertical', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barStackedVertical') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('barStackedVertical') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('barStackedVertical', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'barStackedVertical' }"
-                        :data-tooltip="getCopyTooltip('barStackedVertical')"
-                        :aria-label="getCopyTooltip('barStackedVertical')"
-                        @click="copySnippet('barStackedVertical')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('barStackedVertical') === 'preview'" class="vdc-demo-frame">
-                      <BarChart
-                        :series="stackedVerticalBars"
-                        :theme="theme"
-                        value-mode="number"
-                        stacked
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barStackedVertical"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Stacked Horizontal</h3>
-                    <p>Portfolio-style rows with the same BarChart component.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barStackedHorizontal') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('barStackedHorizontal') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('barStackedHorizontal', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('barStackedHorizontal') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('barStackedHorizontal') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('barStackedHorizontal', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'barStackedHorizontal' }"
-                        :data-tooltip="getCopyTooltip('barStackedHorizontal')"
-                        :aria-label="getCopyTooltip('barStackedHorizontal')"
-                        @click="copySnippet('barStackedHorizontal')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('barStackedHorizontal') === 'preview'" class="vdc-demo-frame is-tall">
-                      <BarChart
-                        :series="stackedHorizontalBars"
-                        :theme="theme"
-                        value-mode="number"
-                        orientation="horizontal"
-                        stacked
-                      />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.barStackedHorizontal"></code></pre>
-                  </article>
-                </div>
-              </section>
-
-              <section class="vdc-demo-section">
-                <div class="vdc-demo-section-heading">
-                  <span class="vdc-demo-kicker">Circular Charts</span>
-                  <h2>Composition at a glance</h2>
-                  <p>
-                    Segment-based views for allocations, progress rings, and compact KPI clusters.
-                  </p>
-                </div>
-
-                <div class="vdc-demo-grid">
-                  <article class="vdc-demo-card">
-                    <h3>Radar Chart</h3>
-                    <p>Spider plot with a shared hover tooltip styled like the reference.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('radarBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('radarBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('radarBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('radarBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('radarBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('radarBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'radarBasic' }"
-                        :data-tooltip="getCopyTooltip('radarBasic')"
-                        :aria-label="getCopyTooltip('radarBasic')"
-                        @click="copySnippet('radarBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('radarBasic') === 'preview'" class="vdc-demo-frame is-tall">
-                      <RadarChart :series="radarSeries" :theme="theme" value-mode="number" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.radarBasic"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Radial Chart</h3>
-                    <p>Layered progress rings styled with the same palette as the donut chart.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('radialBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('radialBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('radialBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('radialBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('radialBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('radialBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'radialBasic' }"
-                        :data-tooltip="getCopyTooltip('radialBasic')"
-                        :aria-label="getCopyTooltip('radialBasic')"
-                        @click="copySnippet('radialBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('radialBasic') === 'preview'" class="vdc-demo-frame is-tall">
-                      <RadialChart :rings="radialRings" :theme="theme" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.radialBasic"></code></pre>
-                  </article>
-
-                  <article class="vdc-demo-card">
-                    <h3>Donut Chart</h3>
-                    <p>Legend toggles visibility without hiding all segments.</p>
-                    <div class="vdc-demo-actions">
-                      <div class="vdc-demo-view-switch">
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('donutBasic') === 'preview' }"
-                          data-tooltip="Show chart preview"
-                          :aria-pressed="getCardView('donutBasic') === 'preview'"
-                          aria-label="Show chart preview"
-                          @click="setCardView('donutBasic', 'preview')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.964 7.178.07.207.07.437 0 .644C20.577 16.49 16.638 19.5 12 19.5c-4.64 0-8.577-3.01-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          </svg>
-                          <span>Preview</span>
-                        </button>
-                        <button
-                          class="vdc-demo-action"
-                          :class="{ 'is-active': getCardView('donutBasic') === 'code' }"
-                          data-tooltip="Show component code"
-                          :aria-pressed="getCardView('donutBasic') === 'code'"
-                          aria-label="Show component code"
-                          @click="setCardView('donutBasic', 'code')"
-                        >
-                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 21 12l-3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75 3 12l3.75 5.25" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75 9.75 20.25" />
-                          </svg>
-                          <span>Code</span>
-                        </button>
-                      </div>
-                      <button
-                        class="vdc-demo-action"
-                        :class="{ 'is-copied': copiedSnippet === 'donutBasic' }"
-                        :data-tooltip="getCopyTooltip('donutBasic')"
-                        :aria-label="getCopyTooltip('donutBasic')"
-                        @click="copySnippet('donutBasic')"
-                      >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H6.375A1.125 1.125 0 0 1 5.25 20.625V10.5c0-.621.504-1.125 1.125-1.125H9.75" />
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75H9.75A2.25 2.25 0 0 0 7.5 6v12.75A2.25 2.25 0 0 0 9.75 21h7.5a2.25 2.25 0 0 0 2.25-2.25V8.25L15 3.75Z" />
-                        </svg>
-                        <span>Copy</span>
-                      </button>
-                    </div>
-                    <div v-if="getCardView('donutBasic') === 'preview'" class="vdc-demo-frame is-tall">
-                      <DonutChart :segments="donutSegments" :theme="theme" />
-                    </div>
-                    <pre v-else class="vdc-demo-code"><code v-text="snippets.donutBasic"></code></pre>
-                  </article>
-                </div>
-              </section>
+              </footer>
             </div>
-          </main>
+          </div>
         `,
       }).mount('#app')
     </script>
   </body>
-  </html>
+</html>

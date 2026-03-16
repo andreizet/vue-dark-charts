@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>vue-dark-charts — Beautiful charts for Vue 3</title>
     <meta name="description" content="Lightweight Vue 3 SVG chart components with zero dependencies. Dark-first, fully themeable, plug and play." />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -833,6 +833,11 @@
             activeCategory: 'line',
             isScrolled: false,
             theme: 'dark',
+            docsUrl: 'https://andreizet.github.io/vue-dark-charts/',
+            npmUrl: 'https://www.npmjs.com/package/vue-dark-charts',
+            repoUrl: 'https://github.com/andreizet/vue-dark-charts',
+            logoDarkSrc: './icon.svg',
+            logoLightSrc: './icon-light.svg',
             cardViews: {},
             copiedSnippet: null,
             copyResetHandle: null,
@@ -1213,7 +1218,7 @@ const rings = [
                 <div class="nav__inner">
                   <a class="nav__logo" href="#" @click.prevent="navigate('home')">
                     <span class="nav__logo-icon">
-                      <img :src="theme === 'light' ? '/icon-light.svg' : '/icon.svg'" alt="vue-dark-charts logo" />
+                      <img :src="theme === 'light' ? logoLightSrc : logoDarkSrc" alt="vue-dark-charts logo" />
                     </span>
                     <span class="nav__logo-text">vue-dark-<span>charts</span></span>
                   </a>
@@ -1223,7 +1228,7 @@ const rings = [
                     <button class="nav__tab" :class="{ active: currentSection === 'docs' }" @click="navigate('docs')">Docs</button>
                   </div>
                   <div class="nav__actions">
-                    <a class="star-btn" href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">
+                    <a class="star-btn" :href="repoUrl" target="_blank" rel="noopener">
                       <svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                       Star on GitHub
                     </a>
@@ -1260,7 +1265,7 @@ const rings = [
                       </p>
                       <div class="hero__actions">
                         <button class="btn btn--lg btn-primary" @click="navigate('examples')">View Examples</button>
-                        <a class="btn btn--lg btn-ghost" href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">GitHub ↗</a>
+                        <a class="btn btn--lg btn-ghost" :href="npmUrl" target="_blank" rel="noopener">npm ↗</a>
                       </div>
                       <div class="hero__charts">
                         <div class="hero__chart-box hero__chart-box--line">
@@ -1996,10 +2001,10 @@ interface RadarSeries       { name: string; color?: string; fillOpacity?: number
               <footer class="footer">
                 <div class="container">
                   <p class="footer__text">
-                    <a href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">vue-dark-charts</a>
+                    <a :href="repoUrl" target="_blank" rel="noopener">vue-dark-charts</a>
                     &mdash; MIT License &mdash;
                     Built with Vue 3 &amp; pure SVG &mdash;
-                    <a href="https://github.com/andreizet/vue-dark-charts" target="_blank" rel="noopener">Star on GitHub ★</a>
+                    <a :href="npmUrl" target="_blank" rel="noopener">View on npm ↗</a>
                   </p>
                 </div>
               </footer>

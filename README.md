@@ -2,11 +2,14 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/andreizet/vue-dark-charts/ci.yml?branch=main&label=tests&logo=github)](https://github.com/andreizet/vue-dark-charts/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/vue-dark-charts?logo=npm)](https://www.npmjs.com/package/vue-dark-charts)
+[![Docs](https://img.shields.io/badge/docs-github%20pages-0f172a?logo=github)](https://andreizet.github.io/vue-dark-charts/)
 [![License](https://img.shields.io/github/license/andreizet/vue-dark-charts)](./LICENSE)
 
 `vue-dark-charts` is a Vue 3 chart library with responsive SVG components, dark-first styling, and minimal setup.
 
 It is designed for dashboards, admin panels, portfolio views, analytics pages, and internal tools where you want lightweight charts without pulling in a large charting runtime.
+
+Documentation: [andreizet.github.io/vue-dark-charts](https://andreizet.github.io/vue-dark-charts/)
 
 ![vue-dark-charts preview](./docs/assets/readme-hero.png)
 
@@ -15,6 +18,8 @@ It is designed for dashboards, admin panels, portfolio views, analytics pages, a
 ```bash
 npm install vue-dark-charts vue
 ```
+
+Full docs and live examples: [andreizet.github.io/vue-dark-charts](https://andreizet.github.io/vue-dark-charts/)
 
 ## What you get
 

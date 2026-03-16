@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import '../src/styles.css'
 import {
   BarChart,
   DonutChart,

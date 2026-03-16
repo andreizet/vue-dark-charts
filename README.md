@@ -1,8 +1,16 @@
 # vue-dark-charts
 
-Small Vue 3 SVG charts extracted from this repo into a standalone package.
+`vue-dark-charts` is a Vue 3 chart library with responsive SVG components, dark-first styling, and minimal setup.
 
-## Included charts
+It is designed for dashboards, admin panels, portfolio views, analytics pages, and internal tools where you want lightweight charts without pulling in a large charting runtime.
+
+## Install
+
+```bash
+npm install vue-dark-charts vue
+```
+
+## What you get
 
 - `LineChart`
 - `MultiLineChart`
@@ -13,133 +21,287 @@ Small Vue 3 SVG charts extracted from this repo into a standalone package.
 - `RadialChart`
 - `RadarChart`
 
-## Development
-
-```bash
-npm install
-npm run dev
-```
-
-That opens the Vite playground from `playground.html`.
-
-## Local HTML preview
-
-```bash
-npm run build
-```
-
-Then open `index.html` directly in the browser with `file://.../vue-dark-charts/index.html`.
-That page is filesystem-safe and loads `./node_modules/vue/dist/vue.global.prod.js` plus
-`./dist/vue-dark-charts.iife.js`.
-
-Build output lands in `dist/`.
-
-## Basic usage
-
-```ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import 'vue-dark-charts/style.css'
-
-createApp(App).mount('#app')
-```
+## Quick start
 
 ```vue
 <script setup lang="ts">
 import { LineChart } from 'vue-dark-charts'
+import 'vue-dark-charts/style.css'
 
-const points = [
-  { x: '2026-03-01', y: 120 },
-  { x: '2026-03-02', y: 180 },
-  { x: '2026-03-03', y: 140 },
+const revenue = [
+  { x: 'Mon', y: 1200 },
+  { x: 'Tue', y: 1800 },
+  { x: 'Wed', y: 1500 },
+  { x: 'Thu', y: 2100 },
+  { x: 'Fri', y: 2400 },
 ]
 </script>
 
 <template>
   <div style="height: 280px;">
     <LineChart
-      :points="points"
+      :points="revenue"
       theme="dark"
+      value-mode="currency"
       color="#38bdf8"
-      dotted
-      :smooth="false"
-      :show-zero-line="false"
     />
   </div>
 </template>
 ```
 
-## Line chart options
+## Layout and sizing
 
-`LineChart`
+Charts are responsive and fill the size of their container.
 
-- accepts either `points` for a single series or `series` for multiple lines
+- Set a height on the wrapper for cartesian charts like `LineChart`, `BarChart`, and `RadarChart`
+- Width is handled automatically
+- Empty states render automatically when no usable data is provided
+
+Example:
+
+```vue
+<div style="height: 320px;">
+  <BarChart :bars="bars" />
+</div>
+```
+
+## Shared props
+
+Most components support a consistent set of props:
+
+| Prop | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `theme` | 'dark' | 'light' | 'auto'` | usually `'dark'` | `auto` follows the current color scheme |
+| `neon` | `boolean` | `true` | Enables the glow-heavy visual style |
+| `format` | `(value: number) => string` | — | Use for custom tooltip/label formatting |
+
+Charts with axis-based numeric values also support:
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `valueMode` | `'currency' | 'percent' | 'number'` | varies by chart |
+
+## Choose the right chart
+
+### `LineChart`
+
+Use for one series or multiple series on the same x-axis.
+
+Key props:
+
+- `points?: ChartPoint[]`
+- `series?: MultiLineSeries[]`
 - `color?: string`
-- `colors?: string[]` when using `series`
-- `dotted?: boolean`
-- `series[].dotted?: boolean` when using `series` to mix solid and dotted lines
-- `showZeroLine?: boolean`
-- `smooth?: boolean`
-
-`MultiLineChart`
-
-- compatibility wrapper around `LineChart` for multi-series usage
-- `colors?: string[]` for fallback per-series colors
-- `series[].color?: string` still overrides an individual line
-- `series[].dotted?: boolean` lets one series stay solid while another is dotted
+- `colors?: string[]`
 - `dotted?: boolean`
 - `showZeroLine?: boolean`
 - `smooth?: boolean`
+- `valueMode?: 'currency' | 'percent' | 'number'`
 
-`RainbowLineChart`
+```vue
+<LineChart :points="points" smooth :show-zero-line="false" />
+```
 
+### `MultiLineChart`
+
+Convenience wrapper for multi-series line charts.
+
+Key props:
+
+- `series: MultiLineSeries[]`
+- `colors?: string[]`
+- `dotted?: boolean`
+- `showZeroLine?: boolean`
+- `smooth?: boolean`
+
+```vue
+<MultiLineChart :series="series" value-mode="number" />
+```
+
+### `RainbowLineChart`
+
+Use when values cross zero and you want positive and negative zones to read differently.
+
+Key props:
+
+- `points: ChartPoint[]`
 - `positiveColor?: string`
 - `negativeColor?: string`
 - `dotted?: boolean`
 - `showZeroLine?: boolean`
 - `smooth?: boolean`
 
-## Bar chart options
+```vue
+<RainbowLineChart
+  :points="profitAndLoss"
+  positive-color="#10b981"
+  negative-color="#ef4444"
+/>
+```
 
-`BarChart`
+### `BarChart`
 
-- accepts either `bars` for a single series or `series` for grouped / stacked bars
+Supports:
+
+- single-series bars with `bars`
+- grouped multi-series bars with `series`
+- stacked bars with `stacked`
+- vertical and horizontal layouts
+- solid colors or gradients
+
+Key props:
+
+- `bars?: BarDatum[]`
+- `series?: BarSeries[]`
 - `orientation?: 'vertical' | 'horizontal'`
 - `stacked?: boolean`
-- `colors?: string[]` for fallback per-series solid fills
-- `gradients?: BarGradient[]` for fallback per-series gradients
-- `bars[].color?: string`
-- `bars[].gradient?: { from?: string; to?: string; stops?: { offset; color; opacity? }[] }`
-- `series[].color?: string`
-- `series[].gradient?: { from?: string; to?: string; stops?: { offset; color; opacity? }[] }`
+- `colors?: string[]`
+- `gradients?: BarGradient[]`
+- `valueMode?: 'currency' | 'percent' | 'number'`
 
-`HorizontalBarChart`
+```vue
+<BarChart
+  :series="departmentSpend"
+  orientation="horizontal"
+  stacked
+  value-mode="currency"
+/>
+```
 
-- compatibility alias for `<BarChart orientation="horizontal" />`
+### `HorizontalBarChart`
 
-## Circular chart options
+Alias for `BarChart` with `orientation="horizontal"`.
 
-`DonutChart`
+```vue
+<HorizontalBarChart :bars="bars" />
+```
 
-- `segments: { label; value; color? }[]`
+### `DonutChart`
+
+Good for composition and share-of-total visuals.
+
+Key props:
+
+- `segments: DonutSegment[]`
 - `centerText?: string`
 
-`RadialChart`
+Events:
 
-- `rings: { label; value; max?: number; color?: string }[]`
-- uses the same fallback palette as `DonutChart` when `color` is omitted
+- `segment-click`
+
+```vue
+<DonutChart
+  :segments="segments"
+  center-text="Traffic"
+  @segment-click="handleSegmentClick"
+/>
+```
+
+Notes:
+
+- segments with non-positive values are ignored
+- clicking a segment emits `segment-click`
+- clicking the legend also toggles segment visibility inside the chart
+
+### `RadialChart`
+
+Best for progress rings, KPIs, and scorecards.
+
+Key props:
+
+- `rings: RadialRing[]`
 - `centerText?: string`
 - `centerLabel?: string`
 - `startAngle?: number`
 - `ringGap?: number`
 
-`RadarChart`
+Events:
 
-- accepts either `points` for a single polygon or `series` for multi-series overlays
-- `series: { name; color?; fillOpacity?; points: { x; y }[] }[]`
+- `ring-click`
+
+```vue
+<RadialChart
+  :rings="kpis"
+  center-text="86%"
+  center-label="completion"
+  @ring-click="handleRingClick"
+/>
+```
+
+### `RadarChart`
+
+Use for comparing categories across one or more series.
+
+Key props:
+
+- `points?: ChartPoint[]`
+- `series?: RadarSeries[]`
 - `color?: string`
-- `colors?: string[]` when using `series`
-- `valueMode?: 'currency' | 'percent' | 'number'`
-- `maxValue?: number` to pin the outer ring scale
+- `colors?: string[]`
+- `maxValue?: number`
 - `gridLevels?: number`
 - `showDots?: boolean`
+- `valueMode?: 'currency' | 'percent' | 'number'`
+
+```vue
+<RadarChart :series="skills" :grid-levels="6" show-dots />
+```
+
+## Types
+
+```ts
+type ChartTheme = 'dark' | 'light' | 'auto'
+type ValueMode = 'currency' | 'percent' | 'number'
+
+type ChartPoint = {
+  x: string
+  y: number
+}
+
+type MultiLineSeries = {
+  name: string
+  color?: string
+  dotted?: boolean
+  points: ChartPoint[]
+}
+
+type BarDatum = {
+  label: string
+  value: number
+  color?: string
+  gradient?: BarGradient
+}
+
+type BarSeries = {
+  name: string
+  color?: string
+  gradient?: BarGradient
+  bars: BarDatum[]
+}
+
+type DonutSegment = {
+  label: string
+  value: number
+  color?: string
+}
+
+type RadialRing = {
+  label: string
+  value: number
+  max?: number
+  color?: string
+}
+
+type RadarSeries = {
+  name: string
+  color?: string
+  fillOpacity?: number
+  points: ChartPoint[]
+}
+```
+
+## Notes
+
+- `vue` is a peer dependency
+- import styles with `import 'vue-dark-charts/style.css'`
+- charts are rendered with SVG, so they are easy to style and scale cleanly

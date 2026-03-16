@@ -1,7 +1,23 @@
 {
   "name": "vue-dark-charts",
   "version": "0.1.0",
-  "description": "Small Vue 3 SVG chart components with plain CSS theming.",
+  "description": "Lightweight SVG components with zero dependencies. Dark-first, fully themeable.",
+  "keywords": [
+    "vue",
+    "vue3",
+    "charts",
+    "svg",
+    "data-visualization",
+    "dark-charts"
+  ],
+  "homepage": "https://github.com/andreizet/vue-dark-charts#readme",
+  "bugs": {
+    "url": "https://github.com/andreizet/vue-dark-charts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andreizet/vue-dark-charts.git"
+  },
   "type": "module",
   "main": "dist/vue-dark-charts.cjs",
   "module": "dist/vue-dark-charts.js",
@@ -20,13 +36,21 @@
   "sideEffects": [
     "*.css"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "vite --config vite.docs.config.ts",
-    "build": "vue-tsc --noEmit -p tsconfig.json && npm run build:lib && npm run build:docs",
+    "build": "npm run clean && vue-tsc --noEmit -p tsconfig.json && npm run build:lib && npm run build:docs",
     "build:lib": "vite build",
     "build:docs": "vite build --config vite.docs.config.ts",
+    "release:build": "npm run clean && vue-tsc --noEmit -p tsconfig.json && npm run build:lib",
+    "release:check": "npm test && npm run release:build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run release:check"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

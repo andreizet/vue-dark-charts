@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<BarChartProps>(), {
   valueMode: 'currency',
   orientation: 'vertical',
   stacked: false,
+  neon: true,
 })
 
 const component = computed(() =>

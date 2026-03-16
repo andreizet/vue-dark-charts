@@ -19,6 +19,7 @@ const props = withDefaults(defineProps<RadarChartProps>(), {
   valueMode: 'number',
   gridLevels: 5,
   showDots: false,
+  neon: true,
 })
 
 const rootRef = ref<HTMLDivElement | null>(null)
@@ -341,6 +342,7 @@ function clearHover() {
   hoveredIndex.value = null
 }
 
+const lineGlowId = uniqueId('vdc-radar-line-glow')
 const pointGlowId = uniqueId('vdc-radar-point-glow')
 </script>
 
@@ -355,6 +357,16 @@ const pointGlowId = uniqueId('vdc-radar-point-glow')
     >
       <svg class="vdc-radar-svg" :width="cw" :height="ch" :viewBox="`0 0 ${cw} ${ch}`">
         <defs>
+          <filter :id="lineGlowId" x="-160%" y="-160%" width="420%" height="420%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feComponentTransfer in="blur" result="dimBlur">
+              <feFuncA type="linear" slope="0.32" />
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode in="dimBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
           <filter :id="pointGlowId" x="-250%" y="-250%" width="600%" height="600%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
             <feMerge>
@@ -406,6 +418,7 @@ const pointGlowId = uniqueId('vdc-radar-point-glow')
           class="vdc-radar-line"
           :d="series.path"
           :stroke="series.color"
+          :filter="props.neon ? `url(#${lineGlowId})` : undefined"
         />
 
         <circle
@@ -415,7 +428,7 @@ const pointGlowId = uniqueId('vdc-radar-point-glow')
           :cy="point.y"
           :r="point.active ? 4.5 : 2.5"
           :fill="point.color"
-          :filter="point.active ? `url(#${pointGlowId})` : undefined"
+          :filter="props.neon ? `url(#${pointGlowId})` : undefined"
           :class="['vdc-radar-point', { 'is-active': point.active }]"
         />
 

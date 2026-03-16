@@ -120,4 +120,20 @@ describe('LineChart', () => {
     expect(paths[0].attributes('stroke-dasharray')).toBeUndefined()
     expect(paths[1].attributes('stroke-dasharray')).toBe('6 6')
   })
+
+  it('can disable the neon glow', async () => {
+    const wrapper = mount(LineChart, {
+      props: {
+        points: [
+          { x: '2026-03-01', y: 10 },
+          { x: '2026-03-02', y: 20 },
+        ],
+        neon: false,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.find('path').attributes('filter')).toBeUndefined()
+  })
 })

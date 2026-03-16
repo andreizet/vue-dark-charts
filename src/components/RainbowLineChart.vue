@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<RainbowLineChartProps>(), {
   dotted: false,
   showZeroLine: true,
   smooth: true,
+  neon: true,
 })
 
 const rootRef = ref<HTMLDivElement | null>(null)
@@ -282,7 +283,10 @@ const tooltipStyle = computed<CSSProperties>(() => {
 })
 
 const gradientId = uniqueId('vdc-rainbow-gradient')
+const glowId = uniqueId('vdc-rainbow-glow')
 const dotGlowId = uniqueId('vdc-rainbow-dot')
+const neonLineFilter = computed(() => (props.neon ? `url(#${glowId})` : undefined))
+const neonPointFilter = computed(() => (props.neon ? `url(#${dotGlowId})` : undefined))
 </script>
 
 <template>
@@ -321,6 +325,17 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
           </template>
         </linearGradient>
 
+        <filter :id="glowId" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feComponentTransfer in="blur" result="dimBlur">
+            <feFuncA type="linear" slope="0.35" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="dimBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
         <filter :id="dotGlowId" x="-200%" y="-200%" width="500%" height="500%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
           <feMerge>
@@ -357,6 +372,7 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
         fill="none"
         :stroke="`url(#${gradientId})`"
         stroke-width="2"
+        :filter="neonLineFilter"
         stroke-linecap="round"
         stroke-linejoin="round"
         :stroke-dasharray="lineStrokeDasharray"
@@ -401,7 +417,7 @@ const dotGlowId = uniqueId('vdc-rainbow-dot')
           :cy="animY"
           r="5"
           :fill="hoveredColor"
-          :filter="`url(#${dotGlowId})`"
+          :filter="neonPointFilter"
           :opacity="animOpacity"
         />
         <circle :cx="animX" :cy="animY" r="3" :fill="hoveredColor" :opacity="animOpacity" />

@@ -10,6 +10,7 @@ export interface BaseLineChartProps {
   dotted?: boolean
   showZeroLine?: boolean
   smooth?: boolean
+  neon?: boolean
 }
 
 export interface SingleLineChartProps extends BaseLineChartProps {
@@ -43,6 +44,7 @@ export interface MultiLineChartProps {
   dotted?: boolean
   showZeroLine?: boolean
   smooth?: boolean
+  neon?: boolean
   theme?: ChartTheme
   valueMode?: ValueMode
   format?: (value: number) => string
@@ -55,6 +57,7 @@ export interface RainbowLineChartProps {
   dotted?: boolean
   showZeroLine?: boolean
   smooth?: boolean
+  neon?: boolean
   theme?: ChartTheme
   format?: (value: number) => string
 }
@@ -96,6 +99,7 @@ export interface BarChartProps {
   gradients?: BarGradient[]
   orientation?: BarOrientation
   stacked?: boolean
+  neon?: boolean
   theme?: ChartTheme
   valueMode?: ValueMode
   format?: (value: number) => string
@@ -109,6 +113,7 @@ export interface DonutSegment {
 
 export interface DonutChartProps {
   segments: DonutSegment[]
+  neon?: boolean
   theme?: ChartTheme
   centerText?: string
   format?: (value: number) => string
@@ -123,6 +128,7 @@ export interface RadialRing {
 
 export interface RadialChartProps {
   rings: RadialRing[]
+  neon?: boolean
   theme?: ChartTheme
   centerText?: string
   centerLabel?: string
@@ -141,6 +147,7 @@ export interface RadarSeries {
 export interface RadarChartProps {
   points?: ChartPoint[]
   series?: RadarSeries[]
+  neon?: boolean
   theme?: ChartTheme
   valueMode?: ValueMode
   format?: (value: number) => string

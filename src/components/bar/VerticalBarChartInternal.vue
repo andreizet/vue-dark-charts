@@ -24,6 +24,7 @@ const props = withDefaults(defineProps<BarChartProps>(), {
   theme: 'dark',
   valueMode: 'currency',
   stacked: false,
+  neon: true,
 })
 
 const rootRef = ref<HTMLDivElement | null>(null)
@@ -439,6 +440,7 @@ const tooltipStyle = computed<CSSProperties>(() => {
     zIndex: '1000',
   }
 })
+const barGlowId = uniqueId('vdc-bar-vertical-glow')
 
 function stopAnimation() {
   if (frame !== null) {
@@ -498,6 +500,16 @@ onUnmounted(() => {
       @touchend="onLeave"
     >
       <defs>
+        <filter :id="barGlowId" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+          <feComponentTransfer in="blur" result="dimBlur">
+            <feFuncA type="linear" slope="0.26" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="dimBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
         <linearGradient
           v-for="def in fillDefs"
           :id="def.id"
@@ -551,6 +563,7 @@ onUnmounted(() => {
         :width="bar.width"
         :height="bar.height"
         :fill="resolveFill(bar)"
+        :filter="props.neon ? `url(#${barGlowId})` : undefined"
         :style="{
           opacity: hoveredIndex !== null && hoveredIndex !== bar.labelIndex ? 0.16 : 1,
           transition: 'opacity 0.18s ease',

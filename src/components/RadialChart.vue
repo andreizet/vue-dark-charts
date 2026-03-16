@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<RadialChartProps>(), {
   centerLabel: 'progress',
   startAngle: 135,
   ringGap: 8,
+  neon: true,
 })
 
 const emit = defineEmits<{
@@ -210,9 +211,7 @@ function onRingClick(index: number) {
             :stroke-dasharray="ring.dasharray"
             :transform="ring.rotate"
             :opacity="hoveredIndex === null || hoveredIndex === ring.index ? 1 : 0.3"
-            :filter="
-              hoveredIndex === ring.index ? `url(#vdc-radial-glow-${ring.index})` : undefined
-            "
+            :filter="props.neon ? `url(#vdc-radial-glow-${ring.index})` : undefined"
             @mousemove="onRingMove($event, ring.index)"
             @mouseleave="onRingLeave"
             @click="onRingClick(ring.index)"

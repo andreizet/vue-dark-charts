@@ -6,6 +6,7 @@ import type { DonutChartProps, DonutSegment } from '../types'
 
 const props = withDefaults(defineProps<DonutChartProps>(), {
   theme: 'dark',
+  neon: true,
 })
 
 const emit = defineEmits<{
@@ -275,9 +276,7 @@ function onSegmentClick(index: number) {
             :d="arc.path"
             :fill="arc.color"
             :opacity="hoveredIndex === null || hoveredIndex === arc.index ? 1 : 0.35"
-            :filter="
-              hoveredIndex === arc.index ? `url(#vdc-donut-glow-${arc.index})` : undefined
-            "
+            :filter="props.neon ? `url(#vdc-donut-glow-${arc.index})` : undefined"
             :transform="
               hoveredIndex === arc.index
                 ? `translate(${Math.cos((arc.midAngle - 90) * Math.PI / 180) * 4}, ${Math.sin((arc.midAngle - 90) * Math.PI / 180) * 4})`

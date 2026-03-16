@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<MultiLineChartProps>(), {
   dotted: false,
   showZeroLine: true,
   smooth: true,
+  neon: true,
 })
 </script>
 

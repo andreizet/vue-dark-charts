@@ -38,4 +38,20 @@ describe('DonutChart', () => {
 
     expect(wrapper.emitted('segment-click')).toBeTruthy()
   })
+
+  it('can disable the neon glow', async () => {
+    const wrapper = mount(DonutChart, {
+      props: {
+        segments: [
+          { label: 'Tech', value: 10 },
+          { label: 'Energy', value: 3 },
+        ],
+        neon: false,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.find('path').attributes('filter')).toBeUndefined()
+  })
 })

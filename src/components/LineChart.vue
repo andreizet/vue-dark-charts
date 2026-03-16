@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<LineChartProps>(), {
   dotted: false,
   showZeroLine: true,
   smooth: true,
+  neon: true,
 })
 
 const rootRef = ref<HTMLDivElement | null>(null)
@@ -416,6 +417,8 @@ const multiTooltipStyle = computed<CSSProperties>(() => ({
 const singleSeriesPath = computed(() => seriesPaths.value[0]?.path ?? '')
 const glowId = uniqueId('vdc-line-glow')
 const dotGlowId = uniqueId('vdc-line-dot')
+const neonLineFilter = computed(() => (props.neon ? `url(#${glowId})` : undefined))
+const neonPointFilter = computed(() => (props.neon ? `url(#${dotGlowId})` : undefined))
 </script>
 
 <template>
@@ -482,6 +485,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
           fill="none"
           :stroke="seriesPath.color"
           stroke-width="2"
+          :filter="neonLineFilter"
           stroke-linecap="round"
           stroke-linejoin="round"
           :stroke-dasharray="resolveStrokeDasharray(seriesPath.dotted)"
@@ -493,7 +497,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
           fill="none"
           :stroke="singleColor"
           stroke-width="2"
-          :filter="`url(#${glowId})`"
+          :filter="neonLineFilter"
           stroke-linecap="round"
           stroke-linejoin="round"
           :stroke-dasharray="resolveStrokeDasharray()"
@@ -505,6 +509,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
           :cy="sy(singlePoints[0].y)"
           r="4"
           :fill="singleColor"
+          :filter="neonPointFilter"
         />
       </template>
 
@@ -548,7 +553,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
           :cy="animY"
           r="5"
           :fill="singleColor"
-          :filter="`url(#${dotGlowId})`"
+          :filter="neonPointFilter"
           :opacity="animOpacity"
         />
         <circle :cx="animX" :cy="animY" r="3" :fill="singleColor" :opacity="animOpacity" />
@@ -575,7 +580,7 @@ const dotGlowId = uniqueId('vdc-line-dot')
             :cy="sy(row.value)"
             r="4"
             :fill="row.color"
-            :filter="`url(#${dotGlowId})`"
+            :filter="neonPointFilter"
             :opacity="animOpacity"
           />
         </template>

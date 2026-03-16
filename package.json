@@ -51,7 +51,8 @@
     "release:check": "npm test && npm run release:build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run release:check"
+    "prepublishOnly": "npm run release:check",
+    "release": "npm version patch"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

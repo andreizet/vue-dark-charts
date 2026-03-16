@@ -1152,6 +1152,19 @@ const segments = [
 <template>
   <DonutChart :segments="segments" theme="dark" />
 </template>`,
+              pieBasic: `<script setup>
+const segments = [
+  { label: 'Tech', value: 12 },
+  { label: 'Healthcare', value: 7 },
+  { label: 'Energy', value: 5 },
+  { label: 'Industrials', value: 4 },
+  { label: 'Consumer', value: 6 },
+]
+<\/script>
+
+<template>
+  <PieChart :segments="segments" theme="dark" />
+</template>`,
               radialBasic: `<script setup>
 const rings = [
   { label: 'Tech',         value: 88, color: '#ec4899' },
@@ -1673,6 +1686,24 @@ const rings = [
                       </div>
 
                       <div class="chart-card">
+                        <div v-show="getCardView('pieBasic') === 'preview'" class="chart-card__preview">
+                          <PieChart :segments="donutSegments" :theme="theme" />
+                        </div>
+                        <pre v-show="getCardView('pieBasic') === 'code'" class="chart-card__code"><code v-text="snippets.pieBasic"></code></pre>
+                        <div class="chart-card__body">
+                          <div class="chart-card__top">
+                            <h3 class="chart-card__title">Pie Chart</h3>
+                            <div class="chart-card__actions">
+                              <button class="cc-btn" :class="{ active: getCardView('pieBasic') === 'preview' }" @click="setCardView('pieBasic', 'preview')">Preview</button>
+                              <button class="cc-btn" :class="{ active: getCardView('pieBasic') === 'code' }" @click="setCardView('pieBasic', 'code')">Code</button>
+                              <button class="cc-btn" :class="{ copied: copiedSnippet === 'pieBasic' }" @click="copySnippet('pieBasic')">{{ copiedSnippet === 'pieBasic' ? 'Copied!' : 'Copy' }}</button>
+                            </div>
+                          </div>
+                          <p class="chart-card__desc">The donut interaction model, rendered as a full pie.</p>
+                        </div>
+                      </div>
+
+                      <div class="chart-card">
                         <div v-show="getCardView('donutBasic') === 'preview'" class="chart-card__preview">
                           <DonutChart :segments="donutSegments" :theme="theme" />
                         </div>
@@ -1721,7 +1752,7 @@ const rings = [
                   <div class="section__header" style="padding-top: 3rem;">
                     <span class="section__eyebrow">API Reference</span>
                     <h2 class="section__heading">Component documentation</h2>
-                    <p class="section__desc">Props, types, and usage for all 8 chart components.</p>
+                    <p class="section__desc">Props, types, and usage for all 9 chart components.</p>
                   </div>
                   <div class="docs-layout">
                     <aside class="docs-sidebar">
@@ -1743,6 +1774,7 @@ const rings = [
                       </div>
                       <div class="docs-sidebar__group">
                         <div class="docs-sidebar__label">Circular</div>
+                        <a class="docs-sidebar__link" href="#doc-piechart">PieChart</a>
                         <a class="docs-sidebar__link" href="#doc-donutchart">DonutChart</a>
                         <a class="docs-sidebar__link" href="#doc-radialchart">RadialChart</a>
                         <a class="docs-sidebar__link" href="#doc-radarchart">RadarChart</a>
@@ -1760,7 +1792,7 @@ const rings = [
                       <div class="docs-section" id="doc-install">
                         <h2 class="docs-section__title">Installation</h2>
                         <pre class="docs-code">npm install vue-dark-charts</pre>
-                        <pre class="docs-code">import { LineChart, BarChart, DonutChart } from 'vue-dark-charts'
+                        <pre class="docs-code">import { LineChart, BarChart, PieChart, DonutChart } from 'vue-dark-charts'
 import 'vue-dark-charts/dist/style.css'</pre>
                         <p class="docs-section__desc">Requires Vue 3.5 or later as a peer dependency.</p>
                       </div>
@@ -1862,6 +1894,27 @@ const points = [
                         <p class="docs-section__desc">Convenience alias for <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">BarChart</code> with <code style="font-family: var(--font-code); color: var(--accent-secondary); font-size: 0.85em;">orientation="horizontal"</code> pre-set. Accepts all the same props as BarChart.</p>
                       </div>
 
+                      <div class="docs-section" id="doc-piechart">
+                        <h2 class="docs-section__title">PieChart</h2>
+                        <p class="docs-section__desc">Segmented pie chart with the same interactive legend and click behavior as DonutChart, but without the center hole.</p>
+                        <table class="options-table">
+                          <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>segments</td><td><span class="badge badge--arr">PieSegment[]</span></td><td><span class="badge badge--req">required</span></td><td>Chart segments</td></tr>
+                            <tr><td>theme</td><td><span class="badge badge--str">'dark'|'light'|'auto'</span></td><td>'dark'</td><td>Visual theme</td></tr>
+                            <tr><td>neon</td><td><span class="badge badge--bool">boolean</span></td><td>true</td><td>Enable or disable the neon glow effect</td></tr>
+                            <tr><td>format</td><td><span class="badge badge--fn">(v: number) => string</span></td><td>—</td><td>Custom value formatter</td></tr>
+                          </tbody>
+                        </table>
+                        <h3 class="docs-section__subtitle">Events</h3>
+                        <table class="options-table">
+                          <thead><tr><th>Event</th><th>Payload</th><th>Description</th></tr></thead>
+                          <tbody>
+                            <tr><td>segment-click</td><td><span class="badge badge--arr">PieSegment</span></td><td>Emitted when a segment is clicked</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
                       <div class="docs-section" id="doc-donutchart">
                         <h2 class="docs-section__title">DonutChart</h2>
                         <p class="docs-section__desc">Segmented ring chart with optional center text. Segments are interactive and emit click events.</p>
@@ -1947,6 +2000,7 @@ interface BarGradient       {
 }
 
 interface DonutSegment      { label: string; value: number; color?: string }
+interface PieSegment        { label: string; value: number; color?: string }
 interface RadialRing        { label: string; value: number; max?: number; color?: string }
 interface RadarSeries       { name: string; color?: string; fillOpacity?: number; points: ChartPoint[] }</pre>
                       </div>

@@ -28,6 +28,7 @@ Full docs and live examples: [andreizet.github.io/vue-dark-charts](https://andre
 - `RainbowLineChart`
 - `BarChart`
 - `HorizontalBarChart`
+- `PieChart`
 - `DonutChart`
 - `RadialChart`
 - `RadarChart`
@@ -187,6 +188,31 @@ Alias for `BarChart` with `orientation="horizontal"`.
 <HorizontalBarChart :bars="bars" />
 ```
 
+### `PieChart`
+
+Use for share-of-total visuals when you want a full pie instead of a center hole.
+
+Key props:
+
+- `segments: PieSegment[]`
+
+Events:
+
+- `segment-click`
+
+```vue
+<PieChart
+  :segments="segments"
+  @segment-click="handleSegmentClick"
+/>
+```
+
+Notes:
+
+- segments with non-positive values are ignored
+- clicking a segment emits `segment-click`
+- clicking the legend also toggles segment visibility inside the chart
+
 ### `DonutChart`
 
 Good for composition and share-of-total visuals.
@@ -291,6 +317,12 @@ type BarSeries = {
 }
 
 type DonutSegment = {
+  label: string
+  value: number
+  color?: string
+}
+
+type PieSegment = {
   label: string
   value: number
   color?: string

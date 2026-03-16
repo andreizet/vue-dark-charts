@@ -7,7 +7,7 @@ npm install vue-dark-charts
 ```
 
 ```ts
-import { LineChart, BarChart, DonutChart } from 'vue-dark-charts'
+import { LineChart, BarChart, PieChart, DonutChart } from 'vue-dark-charts'
 import 'vue-dark-charts/dist/style.css'
 ```
 
@@ -167,6 +167,32 @@ Segmented ring chart with optional center text. Segments are interactive and emi
 
 ---
 
+### PieChart
+
+Segmented pie chart with the same interactive legend and click behavior as `DonutChart`, but without the center hole.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `segments` | `PieSegment[]` | **required** | Chart segments |
+| `theme` | `'dark' \| 'light' \| 'auto'` | `'dark'` | Visual theme |
+| `format` | `(value: number) => string` | — | Custom value formatter |
+
+**Events:**
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `segment-click` | `PieSegment` | Emitted when user clicks a segment |
+
+**Example:**
+```vue
+<PieChart
+  :segments="segments"
+  theme="dark"
+  @segment-click="onSegmentClick"
+/>
+```
+
+---
+
 ### RadialChart
 
 Concentric progress rings, each with its own label, value, and color. Customizable start angle and ring spacing.
@@ -244,6 +270,12 @@ interface BarGradient {
 }
 
 interface DonutSegment {
+  label: string
+  value: number
+  color?: string
+}
+
+interface PieSegment {
   label: string
   value: number
   color?: string

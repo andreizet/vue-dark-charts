@@ -111,13 +111,24 @@ export interface DonutSegment {
   color?: string
 }
 
-export interface DonutChartProps {
-  segments: DonutSegment[]
+export interface PieSegment {
+  label: string
+  value: number
+  color?: string
+}
+
+interface SegmentedCircleChartProps<TSegment> {
+  segments: TSegment[]
   neon?: boolean
   theme?: ChartTheme
-  centerText?: string
   format?: (value: number) => string
 }
+
+export interface DonutChartProps extends SegmentedCircleChartProps<DonutSegment> {
+  centerText?: string
+}
+
+export interface PieChartProps extends SegmentedCircleChartProps<PieSegment> {}
 
 export interface RadialRing {
   label: string
